@@ -6,7 +6,8 @@ export function notFound(req, _res, next) {
 }
 
 // Every error leaves the API in one shape: { error: { code, message, details? } }
-export function errorHandler(err, _req, res, _next) {
+export function errorHandler(err, _req, res, next) {
+  if (res.headersSent) return next(err); // e.g. a download failed midway: let Express close the connection
   if (err instanceof ZodError) {
     return res.status(400).json({
       error: {

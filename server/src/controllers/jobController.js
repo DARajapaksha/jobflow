@@ -1,4 +1,5 @@
 import * as service from '../services/jobService.js';
+import * as applicationService from '../services/applicationService.js';
 import { createJobSchema, updateJobSchema, searchQuerySchema, myJobsQuerySchema, idParamSchema } from '../validators/jobs.js';
 
 export const search = async (req, res) => {
@@ -7,7 +8,10 @@ export const search = async (req, res) => {
 
 export const getOne = async (req, res) => {
   const { id } = idParamSchema.parse(req.params);
-  res.json({ job: await service.getById(id, req.user) });
+  const body = { job: await service.getById(id, req.user) };
+  // Lets the UI show "Applied" instead of the Apply button
+  if (req.user?.role === 'seeker') body.viewer = await applicationService.viewerState(id, req.user);
+  res.json(body);
 };
 
 export const create = async (req, res) => {

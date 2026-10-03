@@ -2,7 +2,7 @@ import * as jobs from '../repositories/jobRepository.js';
 import * as profiles from '../repositories/profileRepository.js';
 import { AppError } from '../utils/AppError.js';
 
-const isLive = (job) => job.status === 'open' && (!job.expiresAt || new Date(job.expiresAt) > new Date());
+export const isLive = (job) => job.status === 'open' && (!job.expiresAt || new Date(job.expiresAt) > new Date());
 const toPublic = ({ ownerId, ...job }) => job;
 
 async function ownedJobOrThrow(id, user) {
