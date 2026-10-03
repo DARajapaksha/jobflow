@@ -4,3 +4,4 @@ uploads/
 dist/
 coverage/
 .DS_Store
+resources.yaml
