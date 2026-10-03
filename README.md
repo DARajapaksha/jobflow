@@ -33,3 +33,18 @@ Reset everything: `npm run db:reset`
 | GET | `/api/auth/me` | current user plus company (employer) or profile (seeker) |
 
 Run the tests with `npm test` in `server/` (they use the database in `DATABASE_URL` and clean up after themselves).
+
+## Jobs API
+
+| Method | Endpoint | Access | Notes |
+|---|---|---|---|
+| GET | `/api/categories` | public | category list |
+| GET | `/api/jobs` | public | `q, category, location, type, mode, salaryMin, sort, page, limit` (see below) |
+| GET | `/api/jobs/:id` | public | open jobs; owners also see their drafts / closed jobs |
+| POST | `/api/jobs` | employer | company comes from the logged-in employer |
+| PATCH | `/api/jobs/:id` | employer (owner) | partial update; `status`: `draft`, `open`, `closed` |
+| DELETE | `/api/jobs/:id` | employer (owner) | |
+| GET | `/api/employer/jobs` | employer | own listings with `applicantCount`; optional `?status=` |
+
+Search example: `/api/jobs?q=react developer&mode=remote,hybrid&type=internship&salaryMin=100000&sort=salary_desc&page=2&limit=10`.
+`type` and `mode` accept comma-separated lists. Response: `{ data: [...], pagination: { page, limit, total, totalPages } }`.

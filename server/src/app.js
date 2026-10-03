@@ -8,6 +8,7 @@ import { env } from './config/env.js';
 import { pool } from './db/pool.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 import authRoutes from './routes/authRoutes.js';
+import jobRoutes from './routes/jobRoutes.js';
 
 export const app = express();
 
@@ -26,7 +27,8 @@ app.get('/api/health', async (_req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
-// More routers get mounted here as we build them (jobs, applications, ...)
+app.use('/api', jobRoutes);
+// More routers get mounted here as we build them (applications, saved jobs, ...)
 
 app.use(notFound);
 app.use(errorHandler);
