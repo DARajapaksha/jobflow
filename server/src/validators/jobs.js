@@ -46,6 +46,7 @@ const csv = (values) =>
 export const searchQuerySchema = z.object({
   q: z.string().trim().max(100).optional(),
   category: z.coerce.number().int().positive().optional(),
+  company: z.uuid().optional(), // all open jobs of one company
   location: z.string().trim().max(120).optional(),
   type: csv(JOB_TYPES).optional(), // ?type=full_time,internship
   mode: csv(WORK_MODES).optional(),
@@ -60,3 +61,8 @@ export const myJobsQuerySchema = z.object({
 });
 
 export const idParamSchema = z.object({ id: z.uuid('Invalid job id') });
+
+export const pageQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(50).default(10),
+});

@@ -1,4 +1,5 @@
 import { pool } from '../db/pool.js';
+import { buildSet } from '../utils/sql.js';
 
 const db = (client) => client ?? pool;
 
@@ -50,4 +51,19 @@ export async function setResume(userId, key, filename) {
 
 export async function clearResume(userId) {
   await pool.query('UPDATE seeker_profiles SET resume_key = NULL, resume_filename = NULL WHERE user_id = $1', [userId]);
+}
+
+const SEEKER_COLUMNS = { headline: 'headline', bio: 'bio', skills: 'skills', location: 'location' };
+const COMPANY_COLUMNS = { name: 'name', description: 'description', website: 'website', location: 'location', logoUrl: 'logo_url' };
+
+export async function updateSeekerProfile(userId, fields, client) {
+  const { sets, params } = buildSet(fields, SEEKER_COLUMNS, 2);
+  if (!sets.length) return;
+  await db(client).query(`UPDATE seeker_profiles SET ${sets.join(', ')} WHERE user_id = $1`, [userId, ...params]);
+}
+
+export async function updateCompany(companyId, fields, client) {
+  const { sets, params } = buildSet(fields, COMPANY_COLUMNS, 2);
+  if (!sets.length) return;
+  await db(client).query(`UPDATE companies SET ${sets.join(', ')} WHERE id = $1`, [companyId, ...params]);
 }

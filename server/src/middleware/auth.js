@@ -28,7 +28,12 @@ export async function authenticate(req, _res, next) {
 
 // For public routes that behave differently when logged in (e.g. "already applied").
 export async function optionalAuth(req, _res, next) {
-  req.user = (await loadUser(req)) ?? undefined;
+  try {
+    req.user = (await loadUser(req)) ?? undefined;
+  } catch (err) {
+    if (err.status !== 401) throw err;
+    req.user = undefined; // an expired or invalid session on a public page just means "not logged in"
+  }
   next();
 }
 

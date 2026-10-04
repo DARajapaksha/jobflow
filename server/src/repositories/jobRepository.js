@@ -22,6 +22,7 @@ const toSummary = (r) => ({
   createdAt: r.created_at,
   category: r.category_id ? { id: r.category_id, name: r.category_name } : null,
   company: { id: r.company_id, name: r.company_name, logoUrl: r.company_logo_url },
+  ...(r.saved !== undefined && { saved: r.saved }), // only present for a logged-in seeker
 });
 
 const escapeLike = (s) => s.replace(/[\\%_]/g, '\\$&');
@@ -31,7 +32,7 @@ const SORTS = {
   salary_desc: 'j.salary_max DESC NULLS LAST, j.created_at DESC',
 };
 
-export async function search({ q, category, location, type, mode, salaryMin, sort, page, limit }) {
+export async function search({ q, category, company, location, type, mode, salaryMin, sort, page, limit }, viewerId = null) {
   const params = [];
   const add = (value) => {
     params.push(value);
@@ -48,6 +49,7 @@ export async function search({ q, category, location, type, mode, salaryMin, sor
     rank = `ts_rank(j.search_vector, websearch_to_tsquery('english', ${text}))`;
   }
   if (category) where.push(`j.category_id = ${add(category)}`);
+  if (company) where.push(`j.company_id = ${add(company)}`);
   if (location) where.push(`j.location ILIKE ${add(`%${escapeLike(location)}%`)}`);
   if (type?.length) where.push(`j.job_type = ANY(${add(type)}::job_type[])`);
   if (mode?.length) where.push(`j.work_mode = ANY(${add(mode)}::work_mode[])`);
@@ -60,10 +62,14 @@ export async function search({ q, category, location, type, mode, salaryMin, sor
   const countResult = await pool.query(`SELECT count(*)::int AS total ${FROM} ${whereSql}`, params);
   const total = countResult.rows[0].total;
 
+  // Logged-in seekers get a per-job "saved" flag so the UI can draw filled bookmarks
+  const savedSql = viewerId
+    ? `, EXISTS (SELECT 1 FROM saved_jobs sv WHERE sv.job_id = j.id AND sv.seeker_id = ${add(viewerId)}) AS saved`
+    : '';
   const limitParam = add(limit);
   const offsetParam = add((page - 1) * limit);
   const { rows } = await pool.query(
-    `SELECT ${SUMMARY_COLUMNS} ${FROM} ${whereSql} ORDER BY ${orderBy}, j.id LIMIT ${limitParam} OFFSET ${offsetParam}`,
+    `SELECT ${SUMMARY_COLUMNS}${savedSql} ${FROM} ${whereSql} ORDER BY ${orderBy}, j.id LIMIT ${limitParam} OFFSET ${offsetParam}`,
     params,
   );
 
@@ -152,4 +158,29 @@ export async function listCategories() {
 export async function categoryExists(id) {
   const { rowCount } = await pool.query('SELECT 1 FROM categories WHERE id = $1', [id]);
   return rowCount > 0;
+}
+
+// A seeker's bookmarks, newest first. Closed and expired jobs stay visible (flagged unavailable);
+// drafts are hidden because the employer has not published them.
+export async function listSaved(seekerId, { page, limit }) {
+  const savedFrom = `
+    FROM saved_jobs sv
+    JOIN jobs j ON j.id = sv.job_id
+    JOIN companies c ON c.id = j.company_id
+    LEFT JOIN categories cat ON cat.id = j.category_id
+    WHERE sv.seeker_id = $1 AND j.status <> 'draft'`;
+  const { rows: countRows } = await pool.query(`SELECT count(*)::int AS total ${savedFrom}`, [seekerId]);
+  const total = countRows[0].total;
+  const { rows } = await pool.query(
+    `SELECT ${SUMMARY_COLUMNS}, sv.saved_at, j.expires_at ${savedFrom} ORDER BY sv.saved_at DESC, j.id LIMIT $2 OFFSET $3`,
+    [seekerId, limit, (page - 1) * limit],
+  );
+  return {
+    data: rows.map((r) => ({
+      ...toSummary(r),
+      savedAt: r.saved_at,
+      available: r.status === 'open' && (!r.expires_at || new Date(r.expires_at) > new Date()),
+    })),
+    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+  };
 }

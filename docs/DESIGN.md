@@ -392,7 +392,10 @@ stateDiagram-v2
 | GET | `/api/me/applications` | seeker | My applications |
 | POST / DELETE | `/api/jobs/:id/save` | seeker | Save / unsave |
 | GET | `/api/categories` | public | Category list |
-| PUT | `/api/me/profile` | auth | Update seeker or company profile |
+| PATCH | `/api/me/profile` | seeker / employer | Update seeker profile or company profile (partial) |
+| GET | `/api/me/saved-jobs` | seeker | Saved jobs (newest first, paginated) |
+| GET | `/api/companies` | public | Companies with open jobs |
+| GET | `/api/companies/:id` | public | Company details and open-job count |
 
 Standard error shape: `{ "error": { "code": "...", "message": "..." } }`. Pagination: `?page=1&limit=10`.
 

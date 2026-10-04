@@ -1,0 +1,47 @@
+@import "tailwindcss";
+@import "@fontsource-variable/bricolage-grotesque/standard.css";
+@import "@fontsource-variable/newsreader/opsz.css";
+
+@theme {
+  /* Ceylon gems: moonstone ground, sapphire for action, padparadscha only for "saved" */
+  --font-sans: "Bricolage Grotesque Variable", "Nirmala UI", "Noto Sans Sinhala", system-ui, sans-serif;
+  --font-serif: "Newsreader Variable", "Nirmala UI", "Noto Serif Sinhala", Georgia, serif;
+
+  --color-moon: #edf0f6;
+  --color-moon-deep: #dde3ee;
+  --color-line: #d3dbe9;
+  --color-ink: #101a3a;
+  --color-ink-soft: #465176;
+  --color-sapphire: #1f3fbf;
+  --color-sapphire-deep: #152c8c;
+  --color-sapphire-tint: #e3e9fb;
+  --color-padpa: #ef6f5a;
+  --color-tea: #1f7656;
+  --color-tea-tint: #dcf0e6;
+  --color-citrine: #8a5a00;
+  --color-citrine-tint: #fbefd2;
+  --color-amethyst: #5b3fb0;
+  --color-amethyst-tint: #ebe5f8;
+  --color-ruby: #a82c49;
+  --color-ruby-tint: #f8e0e6;
+
+  --animate-pop: pop 320ms cubic-bezier(0.3, 1.6, 0.5, 1);
+  --animate-sheet: sheet 180ms ease-out;
+  @keyframes pop { 0% { transform: scale(0.8); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+  @keyframes sheet { from { opacity: 0; transform: translateY(8px) scale(0.985); } to { opacity: 1; transform: none; } }
+}
+
+@layer base {
+  html { font-optical-sizing: auto; -webkit-text-size-adjust: 100%; }
+  body { @apply bg-moon text-ink font-sans antialiased; }
+  h1, h2, h3 { text-wrap: balance; letter-spacing: -0.012em; }
+  p { text-wrap: pretty; }
+  :focus-visible { outline: 2px solid var(--color-sapphire); outline-offset: 2px; }
+  .on-dark :focus-visible { outline-color: #fff; }
+  ::selection { background: var(--color-sapphire); color: #fff; }
+  dialog::backdrop { background: rgb(16 26 58 / 0.55); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}

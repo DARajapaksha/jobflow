@@ -16,6 +16,10 @@
     {
       "key": "applicationId",
       "value": ""
+    },
+    {
+      "key": "companyId",
+      "value": ""
     }
   ],
   "item": [
@@ -230,6 +234,11 @@
                 },
                 {
                   "key": "category",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "company",
                   "value": "",
                   "disabled": true
                 },
@@ -523,6 +532,211 @@
                 "resume"
               ]
             }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Saved jobs (seeker)",
+      "item": [
+        {
+          "name": "Save job",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs/{{jobId}}/save",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "jobs",
+                "{{jobId}}",
+                "save"
+              ]
+            },
+            "description": "Idempotent. Only open jobs can be saved."
+          }
+        },
+        {
+          "name": "Unsave job",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs/{{jobId}}/save",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "jobs",
+                "{{jobId}}",
+                "save"
+              ]
+            }
+          }
+        },
+        {
+          "name": "My saved jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/me/saved-jobs?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "me",
+                "saved-jobs"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Closed or expired jobs stay in the list with available: false."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Update seeker profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/me/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "me",
+                "profile"
+              ]
+            },
+            "description": "Seeker accounts. Send only the fields to change; '' or null clears a field.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Dinsanda Amajith\",\n  \"headline\": \"Full stack developer\",\n  \"bio\": \"I build things people actually use.\",\n  \"skills\": [\n    \"React\",\n    \"Node.js\",\n    \"PostgreSQL\"\n  ],\n  \"location\": \"Monaragala\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update company profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/me/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "me",
+                "profile"
+              ]
+            },
+            "description": "Employer accounts.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Acme Technologies\",\n  \"description\": \"Product studio.\",\n  \"website\": \"https://acme.example\",\n  \"location\": \"Colombo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Companies",
+      "item": [
+        {
+          "name": "List companies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/companies?q=&page=1&limit=12",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "companies"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "",
+                  "disabled": false
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "12",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Companies with at least one open job."
+          }
+        },
+        {
+          "name": "Company detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/companies/{{companyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "companies",
+                "{{companyId}}"
+              ]
+            },
+            "description": "Set the companyId collection variable (from any job's company.id). Its jobs: Search jobs with ?company=<id>."
           }
         }
       ]

@@ -60,10 +60,6 @@ export async function apply(user, jobId, { coverLetter }, file) {
   }
 }
 
-export async function viewerState(jobId, user) {
-  return { application: await applications.findByJobAndSeeker(jobId, user.id) };
-}
-
 export async function listMine(user, status) {
   return (await applications.listBySeeker(user.id, status)).map(forSeeker);
 }

@@ -24,3 +24,7 @@ export async function create({ email, passwordHash, fullName, role }, client) {
   );
   return toUser(rows[0]);
 }
+
+export async function updateFullName(id, fullName, client) {
+  await db(client).query('UPDATE users SET full_name = $2 WHERE id = $1', [id, fullName]);
+}

@@ -78,3 +78,34 @@ by a public URL, only through API endpoints that check who is asking.
 
 Import `docs/Jobflow.postman_collection.json`. Login sets an httpOnly cookie that Postman sends automatically
 (one session at a time: log in as the role you need). Requests save `jobId` and `applicationId` into collection variables.
+
+## Saved jobs, profile and companies API
+
+| Method | Endpoint | Access | Notes |
+|---|---|---|---|
+| POST / DELETE | `/api/jobs/:id/save` | seeker | save / unsave (idempotent); only open jobs can be saved |
+| GET | `/api/me/saved-jobs` | seeker | newest first, paginated; closed/expired jobs stay listed with `available: false` |
+| PATCH | `/api/me/profile` | seeker or employer | seeker: `fullName, headline, bio, skills[], location`; employer (company): `fullName, name, description, website, location`. Send only what changes; `""` or `null` clears a field |
+| GET | `/api/companies` | public | companies with open jobs, busiest first; `?q=&page=&limit=` |
+| GET | `/api/companies/:id` | public | company details with `openJobCount`; its jobs: `GET /api/jobs?company=<id>` |
+
+For a logged-in seeker, `GET /api/jobs` adds `saved: true|false` to each job, and `GET /api/jobs/:id` returns `viewer: { application, saved }`.
+
+## Frontend (`client/`)
+
+React 19, Vite, Tailwind CSS 4, React Router, TanStack Query, React Hook Form + Zod.
+
+```bash
+cd client
+npm install
+npm run dev      # http://localhost:5173 (forwards /api to the API on :5000)
+npm test         # component and unit tests (Vitest + Testing Library)
+npm run build    # production build in client/dist
+```
+
+The browser always calls `/api` on its own origin (Vite proxy in development, a Vercel rewrite in production), so the
+login cookie is first-party. For deployment, set the Vercel root directory to `client` and replace `YOUR-API-NAME` in
+`client/vercel.json` with your Render service name.
+
+Pages so far: job search, job details with apply and save, log in, register, saved jobs, applications with a status
+tracker, and the seeker profile with resume upload. Employer pages (dashboard, post a job, applicants) come next.

@@ -1,5 +1,7 @@
 import * as jobs from '../repositories/jobRepository.js';
 import * as profiles from '../repositories/profileRepository.js';
+import * as saved from '../repositories/savedJobRepository.js';
+import * as applications from '../repositories/applicationRepository.js';
 import { AppError } from '../utils/AppError.js';
 
 export const isLive = (job) => job.status === 'open' && (!job.expiresAt || new Date(job.expiresAt) > new Date());
@@ -18,7 +20,7 @@ async function assertCategory(categoryId) {
   }
 }
 
-export const search = (filters) => jobs.search(filters);
+export const search = (filters, viewerId) => jobs.search(filters, viewerId);
 export const listCategories = () => jobs.listCategories();
 export const listMine = (user, status) => jobs.listByOwner(user.id, status);
 
@@ -55,4 +57,22 @@ export async function update(id, user, input) {
 export async function remove(id, user) {
   await ownedJobOrThrow(id, user);
   await jobs.remove(id);
+}
+
+export async function saveJob(user, jobId) {
+  const job = await jobs.findById(jobId);
+  if (!job || !isLive(job)) throw AppError.notFound('Job not found'); // only open listings can be bookmarked
+  await saved.save(user.id, jobId); // saving twice is harmless
+}
+
+export const unsaveJob = (user, jobId) => saved.remove(user.id, jobId); // also harmless when not saved
+export const listSaved = (user, paging) => jobs.listSaved(user.id, paging);
+
+// What the job page needs to know about the logged-in seeker
+export async function viewerState(jobId, user) {
+  const [application, isSaved] = await Promise.all([
+    applications.findByJobAndSeeker(jobId, user.id),
+    saved.isSaved(user.id, jobId),
+  ]);
+  return { application, saved: isSaved };
 }

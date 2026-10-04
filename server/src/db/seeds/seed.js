@@ -16,17 +16,61 @@ const companies = [
   { key: 'lanka', owner: 'Lanka Employer', email: 'employer2@jobflow.dev', name: 'LankaSoft', location: 'Kandy', website: 'https://lankasoft.example', description: 'Software services for regional clients.' },
 ];
 
+// intro, then "what you'll do" and "what we're looking for" bullet lists
+const describe = (intro, doing, needs) =>
+  `${intro}\n\nWhat you'll do\n${doing.map((d) => `- ${d}`).join('\n')}\n\nWhat we're looking for\n${needs.map((n) => `- ${n}`).join('\n')}`;
+
 const jobs = [
-  ['acme', 'Software Engineering', 'Frontend Developer', 'Build responsive React interfaces with a focus on accessibility and performance. You will work closely with designers.', 'Colombo', 'full_time', 'hybrid', 150000, 250000],
-  ['acme', 'Software Engineering', 'Backend Developer (Node.js)', 'Design REST APIs with Express and PostgreSQL. Strong SQL and testing habits expected.', 'Colombo', 'full_time', 'onsite', 180000, 280000],
-  ['acme', 'Software Engineering', 'Full Stack Intern', 'Six-month internship across React and Node.js with a mentor. Great for undergraduates.', 'Colombo', 'internship', 'hybrid', 40000, 60000],
-  ['acme', 'Design', 'UI/UX Designer', 'Own the design system and run usability tests. Figma proficiency required.', 'Remote', 'contract', 'remote', 120000, 200000],
-  ['acme', 'Marketing', 'Social Media Executive', 'Plan and publish campaigns, track engagement and report monthly.', 'Colombo', 'part_time', 'hybrid', 60000, 90000],
-  ['lanka', 'Software Engineering', 'QA Engineer', 'Write manual and automated tests, report defects and improve release quality.', 'Kandy', 'full_time', 'onsite', 110000, 170000],
-  ['lanka', 'Data & Analytics', 'Data Analyst', 'Turn raw data into dashboards using SQL and a BI tool. Communicate insights to non-technical teams.', 'Kandy', 'full_time', 'hybrid', 130000, 210000],
-  ['lanka', 'Software Engineering', 'DevOps Intern', 'Help maintain CI/CD pipelines and Docker-based environments.', 'Remote', 'internship', 'remote', 40000, 60000],
-  ['lanka', 'Finance', 'Junior Accountant', 'Support month-end close, reconciliations and payroll preparation.', 'Galle', 'full_time', 'onsite', 90000, 130000],
-  ['lanka', 'Customer Support', 'Support Specialist', 'Handle customer tickets by chat and email, escalate technical issues.', 'Kandy', 'full_time', 'onsite', 80000, 110000],
+  ['acme', 'Software Engineering', 'Frontend Developer', describe(
+    'Join the product team building the web apps our clients use every day. You will work closely with designers to turn ideas into fast, accessible interfaces.',
+    ['Build responsive React interfaces from design files', 'Own the quality of what you ship: tests, accessibility and performance', 'Review code and help teammates grow'],
+    ['2+ years of React and modern JavaScript', 'A good eye for detail and layout', 'Comfort working with REST APIs']),
+    'Colombo', 'full_time', 'hybrid', 150000, 250000],
+  ['acme', 'Software Engineering', 'Backend Developer (Node.js)', describe(
+    'We are growing our API team. You will design and run the services behind our web and mobile products.',
+    ['Design REST APIs with Express and PostgreSQL', 'Write database migrations and tune slow queries', 'Add tests and monitoring so releases stay calm'],
+    ['Solid SQL and Node.js experience', 'Habit of writing tests', 'Clear written communication']),
+    'Colombo', 'full_time', 'onsite', 180000, 280000],
+  ['acme', 'Software Engineering', 'Full Stack Intern', describe(
+    'A six-month internship across our React and Node.js stack, with a mentor and real tickets from week one. Great for undergraduates.',
+    ['Ship small features end to end with your mentor', 'Fix bugs and write tests', 'Present what you built at the monthly demo'],
+    ['Studying computing or a related degree', 'A project or two on GitHub', 'Curiosity and a willingness to ask questions']),
+    'Colombo', 'internship', 'hybrid', 40000, 60000],
+  ['acme', 'Design', 'UI/UX Designer', describe(
+    'Shape how our products look and feel. You will own the design system and test ideas with real users.',
+    ['Design flows, wireframes and polished screens in Figma', 'Maintain the shared component library', 'Run short usability tests and share what you learn'],
+    ['A portfolio that shows your process', 'Strong typography and layout skills', 'Experience handing designs to developers']),
+    'Remote', 'contract', 'remote', 120000, 200000],
+  ['acme', 'Marketing', 'Social Media Executive', describe(
+    'Plan and publish campaigns across our social channels, and report on what works.',
+    ['Write and schedule posts, stories and short videos', 'Track engagement and report monthly', 'Work with design on campaign visuals'],
+    ['Excellent English writing; Sinhala or Tamil is a plus', 'Experience running social accounts', 'Comfort with analytics dashboards']),
+    'Colombo', 'part_time', 'hybrid', 60000, 90000],
+  ['lanka', 'Software Engineering', 'QA Engineer', describe(
+    'Help us ship with confidence. You will test new features, automate regression checks and improve release quality.',
+    ['Write manual and automated tests', 'Report and track defects with clear reproduction steps', 'Work with developers to prevent repeat bugs'],
+    ['1+ years in software testing', 'Familiarity with a test framework such as Playwright or Cypress', 'A careful, methodical approach']),
+    'Kandy', 'full_time', 'onsite', 110000, 170000],
+  ['lanka', 'Data & Analytics', 'Data Analyst', describe(
+    'Turn raw data into dashboards and decisions for our regional clients.',
+    ['Build dashboards and reports with SQL and a BI tool', 'Clean and check data from several sources', 'Explain findings to non-technical teams'],
+    ['Strong SQL', 'Experience with a BI tool such as Power BI or Metabase', 'Good at telling the story behind the numbers']),
+    'Kandy', 'full_time', 'hybrid', 130000, 210000],
+  ['lanka', 'Software Engineering', 'DevOps Intern', describe(
+    'Learn how software gets built, tested and deployed. You will help maintain our CI/CD pipelines and Docker-based environments.',
+    ['Maintain GitHub Actions pipelines', 'Containerise services with Docker', 'Document how our environments are set up'],
+    ['Basic Linux and Git skills', 'Interest in cloud and automation', 'Currently studying computing or similar']),
+    'Remote', 'internship', 'remote', 40000, 60000],
+  ['lanka', 'Finance', 'Junior Accountant', describe(
+    'Support our finance team with month-end close, reconciliations and payroll preparation.',
+    ['Reconcile bank and supplier accounts', 'Prepare payroll inputs and journal entries', 'Help with audit requests'],
+    ['Part-qualified or degree in accounting or finance', 'Accurate and organised', 'Working knowledge of Excel']),
+    'Galle', 'full_time', 'onsite', 90000, 130000],
+  ['lanka', 'Customer Support', 'Support Specialist', describe(
+    'Be the friendly, knowledgeable voice customers meet when something goes wrong.',
+    ['Answer tickets by chat and email', 'Escalate technical issues with clear notes', 'Suggest improvements to our help articles'],
+    ['Clear written English; Sinhala or Tamil is a plus', 'Patience and empathy', 'Comfortable learning new software quickly']),
+    'Kandy', 'full_time', 'onsite', 80000, 110000],
 ];
 
 async function seed() {

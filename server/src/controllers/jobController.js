@@ -1,16 +1,16 @@
 import * as service from '../services/jobService.js';
-import * as applicationService from '../services/applicationService.js';
-import { createJobSchema, updateJobSchema, searchQuerySchema, myJobsQuerySchema, idParamSchema } from '../validators/jobs.js';
+import { createJobSchema, updateJobSchema, searchQuerySchema, myJobsQuerySchema, idParamSchema, pageQuerySchema } from '../validators/jobs.js';
 
 export const search = async (req, res) => {
-  res.json(await service.search(searchQuerySchema.parse(req.query)));
+  const viewerId = req.user?.role === 'seeker' ? req.user.id : null;
+  res.json(await service.search(searchQuerySchema.parse(req.query), viewerId));
 };
 
 export const getOne = async (req, res) => {
   const { id } = idParamSchema.parse(req.params);
   const body = { job: await service.getById(id, req.user) };
-  // Lets the UI show "Applied" instead of the Apply button
-  if (req.user?.role === 'seeker') body.viewer = await applicationService.viewerState(id, req.user);
+  // Lets the UI show "Applied" instead of the Apply button, and a filled bookmark
+  if (req.user?.role === 'seeker') body.viewer = await service.viewerState(id, req.user);
   res.json(body);
 };
 
@@ -37,4 +37,20 @@ export const listMine = async (req, res) => {
 
 export const categories = async (_req, res) => {
   res.json({ data: await service.listCategories() });
+};
+
+export const save = async (req, res) => {
+  const { id } = idParamSchema.parse(req.params);
+  await service.saveJob(req.user, id);
+  res.json({ saved: true });
+};
+
+export const unsave = async (req, res) => {
+  const { id } = idParamSchema.parse(req.params);
+  await service.unsaveJob(req.user, id);
+  res.status(204).end();
+};
+
+export const listSaved = async (req, res) => {
+  res.json(await service.listSaved(req.user, pageQuerySchema.parse(req.query)));
 };

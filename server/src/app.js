@@ -11,6 +11,7 @@ import authRoutes from './routes/authRoutes.js';
 import jobRoutes from './routes/jobRoutes.js';
 import meRoutes from './routes/meRoutes.js';
 import applicationRoutes from './routes/applicationRoutes.js';
+import companyRoutes from './routes/companyRoutes.js';
 
 export const app = express();
 
@@ -32,7 +33,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api', jobRoutes);
 app.use('/api/me', meRoutes);
 app.use('/api', applicationRoutes);
-// More routers get mounted here as we build them (saved jobs, ...)
+app.use('/api/companies', companyRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
