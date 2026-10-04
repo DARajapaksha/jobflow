@@ -9,7 +9,7 @@ import { useDeleteResume, useUpdateProfile, useUploadResume } from '../api/hooks
 import { applyApiErrors, notifyError } from '../api/client';
 import { isPdf, sizeError } from '../components/ApplyModal';
 import { Button, Container, TextField } from '../components/ui';
-import ComingSoon from './ComingSoon';
+import CompanyProfile from './CompanyProfile';
 import { usePageTitle } from '../lib/usePageTitle';
 
 const schema = z.object({
@@ -147,5 +147,5 @@ function SeekerProfile() {
 export default function Profile() {
   usePageTitle('Profile');
   const { user } = useAuth();
-  return user.role === 'employer' ? <ComingSoon title="Company profile" /> : <SeekerProfile />;
+  return user.role === 'employer' ? <CompanyProfile /> : <SeekerProfile />;
 }

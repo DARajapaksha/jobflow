@@ -107,5 +107,6 @@ The browser always calls `/api` on its own origin (Vite proxy in development, a 
 login cookie is first-party. For deployment, set the Vercel root directory to `client` and replace `YOUR-API-NAME` in
 `client/vercel.json` with your Render service name.
 
-Pages so far: job search, job details with apply and save, log in, register, saved jobs, applications with a status
-tracker, and the seeker profile with resume upload. Employer pages (dashboard, post a job, applicants) come next.
+Pages: job search, job details with apply and save, log in, register, saved jobs, applications with a status tracker,
+seeker profile with resume upload, public Companies pages, and the employer side (dashboard, post and edit a job with a
+live preview, applicants with status changes and resume download, company profile).

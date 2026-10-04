@@ -21,7 +21,7 @@ function Logo() {
 }
 
 function navLinksFor(user) {
-  const links = [{ to: '/', label: 'Jobs', end: true }];
+  const links = [{ to: '/', label: 'Jobs', end: true }, { to: '/companies', label: 'Companies' }];
   if (user?.role === 'seeker') links.push({ to: '/saved', label: 'Saved' }, { to: '/applications', label: 'Applications' });
   if (user?.role === 'employer') links.push({ to: '/employer', label: 'Dashboard' });
   return links;

@@ -9,7 +9,11 @@ import Register from './pages/Register';
 import Applications from './pages/Applications';
 import Saved from './pages/Saved';
 import Profile from './pages/Profile';
-import ComingSoon from './pages/ComingSoon';
+import EmployerDashboard from './pages/EmployerDashboard';
+import JobForm from './pages/JobForm';
+import Applicants from './pages/Applicants';
+import Companies from './pages/Companies';
+import CompanyPage from './pages/CompanyPage';
 import NotFound from './pages/NotFound';
 
 // New page: start at the top. (Filters change only the query string, so the search page keeps its scroll position.)
@@ -31,6 +35,8 @@ export default function App() {
           <Route path="jobs/:id" element={<JobDetails />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
+          <Route path="companies" element={<Companies />} />
+          <Route path="companies/:id" element={<CompanyPage />} />
 
           <Route element={<ProtectedRoute roles={['seeker']} />}>
             <Route path="saved" element={<Saved />} />
@@ -40,7 +46,10 @@ export default function App() {
             <Route path="profile" element={<Profile />} />
           </Route>
           <Route element={<ProtectedRoute roles={['employer']} />}>
-            <Route path="employer/*" element={<ComingSoon />} />
+            <Route path="employer" element={<EmployerDashboard />} />
+            <Route path="employer/jobs/new" element={<JobForm />} />
+            <Route path="employer/jobs/:id/edit" element={<JobForm />} />
+            <Route path="employer/jobs/:id/applicants" element={<Applicants />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />
