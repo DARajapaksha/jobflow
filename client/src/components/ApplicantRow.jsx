@@ -1,7 +1,8 @@
 import { FileText, Mail, MapPin } from 'lucide-react';
+import Avatar from './Avatar';
 import { Badge, Button } from './ui';
 import { APPLICATION_STATUSES, APPLICATION_TONE, NEXT_STATUSES } from '../lib/constants';
-import { formatDate, initials } from '../lib/format';
+import { formatDate } from '../lib/format';
 import { cn } from '../lib/cn';
 
 // One applicant. Presentational: the page decides what a status change does.
@@ -12,7 +13,7 @@ export default function ApplicantRow({ application, onStatus, pending = false })
   return (
     <li className="p-5 sm:p-6">
       <div className="flex gap-4">
-        <span aria-hidden className="grid size-12 shrink-0 place-items-center rounded-full bg-sapphire-tint font-semibold text-sapphire-deep">{initials(applicant.fullName)}</span>
+        <Avatar name={applicant.fullName} src={applicant.avatarUrl} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
             <div className="min-w-0">

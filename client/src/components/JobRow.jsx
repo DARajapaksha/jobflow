@@ -15,7 +15,7 @@ export default function JobRow({ job, action, unavailable = false }) {
 
   return (
     <li className={cn('relative flex gap-4 p-4 transition-colors sm:p-5', unavailable ? 'bg-moon/60' : 'hover:bg-sapphire-tint/50')}>
-      <CompanyMark name={job.company.name} />
+      <CompanyMark name={job.company.name} logoUrl={job.company.logoUrl} />
       <div className="min-w-0 flex-1">
         <h3 className={cn('text-lg font-semibold leading-snug', unavailable && 'text-ink-soft')}>
           {unavailable ? (

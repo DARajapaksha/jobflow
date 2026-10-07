@@ -151,3 +151,31 @@ export const useCompanies = (params) =>
 
 export const useCompany = (id) =>
   useQuery({ queryKey: ['company', id], queryFn: () => get(`/companies/${id}`).then((d) => d.company) });
+
+// ---------- profile pictures ----------
+// kind: 'avatar' (seekers) or 'logo' (employers)
+export function useUploadImage(kind) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (file) => {
+      const form = new FormData();
+      form.append('image', file);
+      return api.put(`/me/${kind}`, form).then((r) => r.data);
+    },
+    onSuccess: () => {
+      toast.success(kind === 'logo' ? 'Logo updated' : 'Photo updated');
+      qc.invalidateQueries(); // the picture appears on listings, company pages and applicant lists
+    },
+  });
+}
+
+export function useRemoveImage(kind) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.delete(`/me/${kind}`),
+    onSuccess: () => {
+      toast.success(kind === 'logo' ? 'Logo removed' : 'Photo removed');
+      qc.invalidateQueries();
+    },
+  });
+}

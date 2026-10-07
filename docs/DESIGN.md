@@ -115,6 +115,7 @@ erDiagram
     varchar location
     varchar resume_key
     varchar resume_filename
+    varchar avatar_key
   }
   COMPANIES {
     uuid id PK
@@ -123,7 +124,7 @@ erDiagram
     text description
     varchar website
     varchar location
-    varchar logo_url
+    varchar logo_key
   }
   CATEGORIES {
     int id PK
@@ -187,7 +188,8 @@ CREATE TABLE seeker_profiles (
   skills     TEXT[] DEFAULT '{}',
   location   VARCHAR(120),
   resume_key      VARCHAR(500),   -- storage key of default resume
-  resume_filename VARCHAR(255)
+  resume_filename VARCHAR(255),
+  avatar_key      VARCHAR(500)    -- storage key of the profile photo (WebP)
 );
 
 CREATE TABLE companies (
@@ -197,7 +199,7 @@ CREATE TABLE companies (
   description TEXT,
   website     VARCHAR(255),
   location    VARCHAR(120),
-  logo_url    VARCHAR(500)
+  logo_key    VARCHAR(500)   -- storage key of the logo (WebP)
 );
 
 CREATE TABLE categories (
@@ -396,6 +398,10 @@ stateDiagram-v2
 | GET | `/api/me/saved-jobs` | seeker | Saved jobs (newest first, paginated) |
 | GET | `/api/companies` | public | Companies with open jobs |
 | GET | `/api/companies/:id` | public | Company details and open-job count |
+| PUT / DELETE | `/api/me/avatar` | seeker | Upload or remove profile photo (field `image`) |
+| PUT / DELETE | `/api/me/logo` | employer | Upload or remove company logo (field `image`) |
+| GET | `/api/companies/:id/logo` | public | Company logo |
+| GET | `/api/users/:id/avatar` | seeker, or employer they applied to | Profile photo |
 
 Standard error shape: `{ "error": { "code": "...", "message": "..." } }`. Pagination: `?page=1&limit=10`.
 

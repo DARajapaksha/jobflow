@@ -1,4 +1,5 @@
 import { pool } from '../db/pool.js';
+import { logoUrl } from '../utils/assets.js';
 
 const OPEN_JOBS = `(SELECT count(*)::int FROM jobs j WHERE j.company_id = c.id AND j.status = 'open'
                     AND (j.expires_at IS NULL OR j.expires_at > now()))`;
@@ -9,7 +10,7 @@ const toCompany = (r) => ({
   description: r.description,
   website: r.website,
   location: r.location,
-  logoUrl: r.logo_url,
+  logoUrl: logoUrl(r.id, r.logo_key),
   openJobCount: r.open_jobs,
 });
 
@@ -38,4 +39,13 @@ export async function list({ q, page, limit }) {
 export async function findById(id) {
   const { rows } = await pool.query(`SELECT c.*, ${OPEN_JOBS} AS open_jobs FROM companies c WHERE c.id = $1`, [id]);
   return rows[0] ? toCompany(rows[0]) : null;
+}
+
+export async function getLogoKey(companyId) {
+  const { rows } = await pool.query('SELECT logo_key FROM companies WHERE id = $1', [companyId]);
+  return rows[0]?.logo_key ?? null;
+}
+
+export async function setLogoKey(companyId, key) {
+  await pool.query('UPDATE companies SET logo_key = $2 WHERE id = $1', [companyId, key]);
 }

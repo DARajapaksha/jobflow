@@ -1,9 +1,10 @@
 import { pool } from '../db/pool.js';
+import { logoUrl } from '../utils/assets.js';
 
 const SUMMARY_COLUMNS = `
   j.id, j.title, j.location, j.job_type, j.work_mode, j.salary_min, j.salary_max, j.status, j.created_at,
   cat.id AS category_id, cat.name AS category_name,
-  c.id AS company_id, c.name AS company_name, c.logo_url AS company_logo_url`;
+  c.id AS company_id, c.name AS company_name, c.logo_key AS company_logo_key`;
 
 const FROM = `
   FROM jobs j
@@ -21,7 +22,7 @@ const toSummary = (r) => ({
   status: r.status,
   createdAt: r.created_at,
   category: r.category_id ? { id: r.category_id, name: r.category_name } : null,
-  company: { id: r.company_id, name: r.company_name, logoUrl: r.company_logo_url },
+  company: { id: r.company_id, name: r.company_name, logoUrl: logoUrl(r.company_id, r.company_logo_key) },
   ...(r.saved !== undefined && { saved: r.saved }), // only present for a logged-in seeker
 });
 

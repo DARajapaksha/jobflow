@@ -43,7 +43,7 @@ export default function Companies() {
           <ul className="divide-y divide-line">
             {data.data.map((c) => (
               <li key={c.id} className="relative flex gap-4 p-5 transition-colors hover:bg-sapphire-tint/50 sm:p-6">
-                <CompanyMark name={c.name} />
+                <CompanyMark name={c.name} logoUrl={c.logoUrl} />
                 <div className="min-w-0 flex-1">
                   <h2 className="text-lg font-semibold leading-snug">
                     <Link to={`/companies/${c.id}`} className="after:absolute after:inset-0 hover:text-sapphire focus-visible:outline-offset-[-2px]">{c.name}</Link>

@@ -2,8 +2,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../context/AuthContext';
-import { useUpdateProfile } from '../api/hooks';
+import { useRemoveImage, useUpdateProfile, useUploadImage } from '../api/hooks';
 import { applyApiErrors, notifyError } from '../api/client';
+import ImageUpload from '../components/ImageUpload';
 import { Button, Container, TextField } from '../components/ui';
 
 const isHttpUrl = (v) => {
@@ -25,6 +26,8 @@ const schema = z.object({
 export default function CompanyProfile() {
   const { user, company } = useAuth();
   const update = useUpdateProfile();
+  const upload = useUploadImage('logo');
+  const remove = useRemoveImage('logo');
   const { register, handleSubmit, setError, formState: { errors, isDirty } } = useForm({
     resolver: zodResolver(schema),
     values: {
@@ -42,7 +45,18 @@ export default function CompanyProfile() {
     <Container className="max-w-3xl py-10">
       <h1 className="text-3xl font-bold">Company profile</h1>
       <p className="mt-1 text-ink-soft">Job seekers see this on every listing you post.</p>
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-8 space-y-5" aria-label="Company details">
+      <div className="mt-8">
+        <ImageUpload
+          kind="logo"
+          name={company?.name ?? user.fullName}
+          imageUrl={company?.logoUrl}
+          onUpload={(file) => upload.mutate(file, { onError: notifyError })}
+          onRemove={() => remove.mutate(undefined, { onError: notifyError })}
+          uploading={upload.isPending}
+          removing={remove.isPending}
+        />
+      </div>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-10 space-y-5" aria-label="Company details">
         <TextField label="Company name" autoComplete="organization" error={errors.name?.message} {...register('name')} />
         <div className="grid gap-5 sm:grid-cols-2">
           <TextField label="Location" placeholder="Colombo" error={errors.location?.message} {...register('location')} />

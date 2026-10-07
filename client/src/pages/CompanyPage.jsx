@@ -28,7 +28,7 @@ export default function CompanyPage() {
         <ChevronLeft className="size-4" aria-hidden />All companies
       </Link>
       <header className="flex flex-col gap-5 sm:flex-row sm:items-center">
-        <CompanyMark name={company.name} size="lg" />
+        <CompanyMark name={company.name} logoUrl={company.logoUrl} size="lg" />
         <div className="min-w-0">
           <h1 className="text-3xl font-bold leading-tight sm:text-4xl">{company.name}</h1>
           <div className="mt-1.5 flex flex-wrap items-center gap-x-5 gap-y-1 text-ink-soft">

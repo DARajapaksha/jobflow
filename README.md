@@ -110,3 +110,17 @@ login cookie is first-party. For deployment, set the Vercel root directory to `c
 Pages: job search, job details with apply and save, log in, register, saved jobs, applications with a status tracker,
 seeker profile with resume upload, public Companies pages, and the employer side (dashboard, post and edit a job with a
 live preview, applicants with status changes and resume download, company profile).
+
+## Profile pictures
+
+| Method | Endpoint | Access | Notes |
+|---|---|---|---|
+| PUT / DELETE | `/api/me/avatar` | seeker | `multipart/form-data`, field `image` (PNG, JPEG or WebP, max `MAX_IMAGE_MB`, default 5). Stored as a 256 px square |
+| PUT / DELETE | `/api/me/logo` | employer | same rules; keeps its shape and transparency, at most 512 px |
+| GET | `/api/companies/:id/logo` | public | cached for a year (the URL carries a version that changes when the logo does) |
+| GET | `/api/users/:id/avatar` | the seeker, or an employer they applied to | short private cache, tied to the login cookie |
+
+Uploads are decoded and re-encoded as WebP with `sharp`, and the original is never kept. That strips metadata such as
+GPS location from phone photos, applies rotation, and rejects SVG, GIF, tiny images and "image bombs"
+(more than 25 million pixels). Pictures use the same storage driver as resumes (`STORAGE_DRIVER`).
+Run `npm run migrate` once to add the new columns.

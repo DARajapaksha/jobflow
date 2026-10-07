@@ -29,7 +29,7 @@ export default function Applications() {
             {data.map((a) => (
               <li key={a.id} className="p-5 sm:p-6">
                 <div className="flex gap-4">
-                  <CompanyMark name={a.job.company.name} />
+                  <CompanyMark name={a.job.company.name} logoUrl={a.job.company.logoUrl} />
                   <div className="min-w-0 flex-1">
                     <h2 className="text-lg font-semibold leading-snug">
                       {a.job.status === 'open' ? <Link to={`/jobs/${a.job.id}`} className="hover:text-sapphire">{a.job.title}</Link> : a.job.title}

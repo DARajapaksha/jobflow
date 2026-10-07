@@ -100,7 +100,7 @@ export default function JobDetails() {
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <article>
           <header className="flex flex-col gap-5 sm:flex-row sm:items-center">
-            <CompanyMark name={job.company.name} size="lg" />
+            <CompanyMark name={job.company.name} logoUrl={job.company.logoUrl} size="lg" />
             <div className="min-w-0">
               <h1 className="text-3xl font-bold leading-tight sm:text-4xl">{job.title}</h1>
               <p className="mt-1 text-lg text-ink-soft">{job.company.name}</p>

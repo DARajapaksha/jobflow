@@ -1,10 +1,11 @@
 import { pool } from '../db/pool.js';
+import { avatarUrl, logoUrl } from '../utils/assets.js';
 
 const SELECT = `
   SELECT a.id, a.status, a.cover_letter, a.resume_key, a.resume_filename, a.applied_at, a.seeker_id,
          j.id AS job_id, j.title AS job_title, j.location AS job_location, j.status AS job_status,
-         c.id AS company_id, c.name AS company_name, c.owner_id,
-         u.full_name, u.email, sp.headline, sp.skills, sp.location AS applicant_location
+         c.id AS company_id, c.name AS company_name, c.logo_key AS company_logo_key, c.owner_id,
+         u.full_name, u.email, sp.headline, sp.skills, sp.location AS applicant_location, sp.avatar_key
   FROM applications a
   JOIN jobs j ON j.id = a.job_id
   JOIN companies c ON c.id = j.company_id
@@ -23,9 +24,9 @@ const toApplication = (r) => ({
     title: r.job_title,
     location: r.job_location,
     status: r.job_status,
-    company: { id: r.company_id, name: r.company_name },
+    company: { id: r.company_id, name: r.company_name, logoUrl: logoUrl(r.company_id, r.company_logo_key) },
   },
-  applicant: { id: r.seeker_id, fullName: r.full_name, email: r.email, headline: r.headline, skills: r.skills ?? [], location: r.applicant_location },
+  applicant: { id: r.seeker_id, fullName: r.full_name, email: r.email, headline: r.headline, skills: r.skills ?? [], location: r.applicant_location, avatarUrl: avatarUrl(r.seeker_id, r.avatar_key) },
   resumeKey: r.resume_key,
   seekerId: r.seeker_id,
   ownerId: r.owner_id,
@@ -88,5 +89,15 @@ export async function updateStatus(id, from, to) {
 
 export async function isResumeKeyReferenced(key) {
   const { rowCount } = await pool.query('SELECT 1 FROM applications WHERE resume_key = $1 LIMIT 1', [key]);
+  return rowCount > 0;
+}
+
+// May this employer see this seeker's photo? Only if the seeker applied to one of the employer's jobs.
+export async function employerCanSeeApplicant(ownerId, seekerId) {
+  const { rowCount } = await pool.query(
+    `SELECT 1 FROM applications a JOIN jobs j ON j.id = a.job_id JOIN companies c ON c.id = j.company_id
+     WHERE a.seeker_id = $1 AND c.owner_id = $2 LIMIT 1`,
+    [seekerId, ownerId],
+  );
   return rowCount > 0;
 }

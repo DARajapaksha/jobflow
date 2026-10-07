@@ -12,6 +12,7 @@ import jobRoutes from './routes/jobRoutes.js';
 import meRoutes from './routes/meRoutes.js';
 import applicationRoutes from './routes/applicationRoutes.js';
 import companyRoutes from './routes/companyRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 export const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api', jobRoutes);
 app.use('/api/me', meRoutes);
 app.use('/api', applicationRoutes);
 app.use('/api/companies', companyRoutes);
+app.use('/api/users', userRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

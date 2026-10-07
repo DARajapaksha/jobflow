@@ -3,9 +3,9 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { ChevronDown, LogOut, Menu, UserRound, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
+import Avatar from './Avatar';
 import { Container, buttonClass } from './ui';
 import { cn } from '../lib/cn';
-import { initials } from '../lib/format';
 
 function Logo() {
   return (
@@ -31,10 +31,11 @@ const linkClass = ({ isActive }) =>
   cn('rounded-lg px-3 py-2 text-[0.95rem] font-medium transition-colors', isActive ? 'bg-sapphire-tint text-sapphire-deep' : 'text-ink-soft hover:bg-moon-deep hover:text-ink');
 
 function UserMenu() {
-  const { user, logout } = useAuth();
+  const { user, profile, company, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const isEmployer = user.role === 'employer';
   const ref = useRef(null);
 
   useEffect(() => {
@@ -61,7 +62,7 @@ function UserMenu() {
   return (
     <div ref={ref} className="relative">
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-haspopup="menu" className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2.5 hover:bg-moon-deep">
-        <span className="grid size-8 place-items-center rounded-full bg-sapphire text-sm font-semibold text-white">{initials(user.fullName)}</span>
+        <Avatar name={isEmployer ? company?.name ?? user.fullName : user.fullName} src={isEmployer ? company?.logoUrl : profile?.avatarUrl} fit={isEmployer ? 'contain' : 'cover'} size="sm" solid />
         <span className="hidden max-w-32 truncate text-sm font-medium sm:block">{user.fullName}</span>
         <ChevronDown className="size-4 text-ink-soft" aria-hidden />
       </button>

@@ -5,9 +5,10 @@ import { z } from 'zod';
 import { FileText, Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
-import { useDeleteResume, useUpdateProfile, useUploadResume } from '../api/hooks';
+import { useDeleteResume, useRemoveImage, useUpdateProfile, useUploadImage, useUploadResume } from '../api/hooks';
 import { applyApiErrors, notifyError } from '../api/client';
 import { isPdf, sizeError } from '../components/ApplyModal';
+import ImageUpload from '../components/ImageUpload';
 import { Button, Container, TextField } from '../components/ui';
 import CompanyProfile from './CompanyProfile';
 import { usePageTitle } from '../lib/usePageTitle';
@@ -105,6 +106,8 @@ function ResumeSection({ filename }) {
 function SeekerProfile() {
   const { user, profile } = useAuth();
   const update = useUpdateProfile();
+  const upload = useUploadImage('avatar');
+  const remove = useRemoveImage('avatar');
   const { register, handleSubmit, control, setError, formState: { errors, isDirty } } = useForm({
     resolver: zodResolver(schema),
     values: {
@@ -125,6 +128,16 @@ function SeekerProfile() {
         <h1 className="text-3xl font-bold">Your profile</h1>
         <p className="mt-1 text-ink-soft">{user.email}</p>
       </div>
+
+      <ImageUpload
+        kind="avatar"
+        name={user.fullName}
+        imageUrl={profile?.avatarUrl}
+        onUpload={(file) => upload.mutate(file, { onError: notifyError })}
+        onRemove={() => remove.mutate(undefined, { onError: notifyError })}
+        uploading={upload.isPending}
+        removing={remove.isPending}
+      />
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5" aria-label="Profile details">
         <div className="grid gap-5 sm:grid-cols-2">
