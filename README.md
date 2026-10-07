@@ -1,5 +1,7 @@
 # Jobflow
 
+![CI](https://github.com/DARajapaksha/jobflow/actions/workflows/ci.yml/badge.svg)
+
 Job board with employer and job-seeker roles. React + Node.js/Express + PostgreSQL.
 See [docs/DESIGN.md](docs/DESIGN.md) for architecture, UML, schema, API and wireframes.
 
@@ -103,9 +105,13 @@ npm test         # component and unit tests (Vitest + Testing Library)
 npm run build    # production build in client/dist
 ```
 
-The browser always calls `/api` on its own origin (Vite proxy in development, a Vercel rewrite in production), so the
-login cookie is first-party. For deployment, set the Vercel root directory to `client` and replace `YOUR-API-NAME` in
-`client/vercel.json` with your Render service name.
+The browser always calls `/api` on its own origin (a Vite proxy in development, and in production the server itself
+serves the built app), so the login cookie is first-party.
+
+## Deployment
+
+Free, in about 45 minutes: Render (app) + Neon (Postgres) + Backblaze B2 (files). Step by step, with the limits to
+re-check and a troubleshooting table, in [docs/DEPLOY.md](docs/DEPLOY.md). `render.yaml` describes the service.
 
 Pages: job search, job details with apply and save, log in, register, saved jobs, applications with a status tracker,
 seeker profile with resume upload, public Companies pages, and the employer side (dashboard, post and edit a job with a

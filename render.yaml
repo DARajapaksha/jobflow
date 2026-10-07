@@ -1,0 +1,38 @@
+# Render Blueprint: one free web service that serves both the React app and the API.
+# The database lives on Neon and files on Backblaze B2 (see docs/DEPLOY.md), so values marked sync: false
+# are pasted into the Render dashboard the first time and never stored in git.
+services:
+  - type: web
+    name: jobflow
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: cd client && npm ci --include=dev && npm run build && cd ../server && npm ci --omit=dev
+    startCommand: cd server && npm run start:prod
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: SERVE_CLIENT
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_SSL
+        value: "true"
+      - key: STORAGE_DRIVER
+        value: s3
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_REGION
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false

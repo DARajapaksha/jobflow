@@ -28,6 +28,10 @@ export function createS3ClientFromEnv(env) {
     region: env.s3Region,
     endpoint: env.s3Endpoint || undefined,
     forcePathStyle: env.s3ForcePathStyle,
+    // Recent SDK versions add checksum headers that some S3-compatible stores (Backblaze B2, MinIO, ...) reject.
+    // Only send them when the operation requires it.
+    requestChecksumCalculation: 'WHEN_REQUIRED',
+    responseChecksumValidation: 'WHEN_REQUIRED',
     credentials: env.s3AccessKeyId
       ? { accessKeyId: env.s3AccessKeyId, secretAccessKey: env.s3SecretAccessKey }
       : undefined,

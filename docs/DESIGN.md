@@ -35,7 +35,7 @@ Keeping the MVP small is deliberate: a finished, deployed, clean project is wort
 | Search | PostgreSQL full-text search (`tsvector` + GIN index) | No extra service needed |
 | Security | helmet, cors, express-rate-limit | Basics reviewers look for |
 | Testing | Vitest (frontend), Jest + Supertest (API) | A few API tests stand out on a CV |
-| Deployment | Render (API + managed Postgres) and Vercel (frontend) | Both already on your CV |
+| Deployment | Render (one service: API + React build), Neon (Postgres), Backblaze B2 (files) | Free, no expiry on the data, no card needed for Neon and B2. See docs/DEPLOY.md |
 | DevOps touch | Docker + docker-compose for local dev, GitHub Actions CI | Reuses your Chatflow Docker experience |
 
 ---
