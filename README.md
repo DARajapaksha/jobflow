@@ -2,131 +2,121 @@
 
 ![CI](https://github.com/DARajapaksha/jobflow/actions/workflows/ci.yml/badge.svg)
 
-Job board with employer and job-seeker roles. React + Node.js/Express + PostgreSQL.
-See [docs/DESIGN.md](docs/DESIGN.md) for architecture, UML, schema, API and wireframes.
+A full-stack job board. Employers post listings and move applicants through a hiring pipeline; job seekers search,
+save jobs and apply with a PDF resume.
 
-## Local setup
+**Live demo: https://jobflow-8zdp.onrender.com**
+
+The demo runs on a free host, so the first visit after a quiet spell can take up to a minute to wake up.
+Log in with a demo account (password `Password123!` for all):
+
+| Role | Email |
+|---|---|
+| Job seeker | `seeker@jobflow.dev` |
+| Employer (Acme Technologies) | `employer@jobflow.dev` |
+| Employer (LankaSoft) | `employer2@jobflow.dev` |
+
+![The Jobflow search page](docs/screenshots/01-search.png)
+
+## What you can do
+
+**Job seekers**
+- Search by keyword and location, and filter by job type, work mode, category and minimum salary. The search lives in
+  the URL, so a result page can be shared and the back button works.
+- Save jobs, then apply with a cover letter and a PDF resume (upload one per application, or reuse a saved resume).
+- Follow every application on a status tracker, and keep a profile with a photo, headline and skills.
+
+**Employers**
+- Post, edit, close, reopen and delete listings. Drafts stay private until published, and a live preview shows how the
+  description will look.
+- Review applicants: read cover letters, download resumes, and move each application from submitted to reviewed,
+  shortlisted and hired (or reject it). Only the next valid steps are offered.
+- Keep a company profile with a logo that appears on every listing.
+
+## Screenshots
+
+| | |
+|---|---|
+| ![Job page](docs/screenshots/02-job.png) | ![Application tracker](docs/screenshots/03-applications.png) |
+| **A job page** with salary, a formatted description and one-tap apply or save | **The application tracker** shows where each application stands |
+| ![Employer dashboard](docs/screenshots/05-dashboard.png) | ![Applicants](docs/screenshots/06-applicants.png) |
+| **The employer dashboard** with listings and applicant counts | **Applicants** with photos, skills, resumes and status actions |
+| ![Post a job](docs/screenshots/07-post-job.png) | <img src="docs/screenshots/08-mobile.png" alt="Phone layout" width="240"> |
+| **Posting a job** with a live preview of the description | **On a phone** the same screens reflow to one column |
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 19, Vite, Tailwind CSS 4, React Router, TanStack Query, React Hook Form and Zod |
+| Backend | Node.js, Express 5, PostgreSQL (plain SQL with `pg`, no ORM) |
+| Authentication | JWT in an httpOnly cookie, bcrypt password hashing, role-based access control |
+| Files | `multer` uploads, `sharp` image processing, a storage layer with a local-disk driver and an S3-compatible driver |
+| Quality | 66 API integration tests (real PostgreSQL), 42 component and unit tests (Vitest, Testing Library), GitHub Actions CI |
+| Deployment | Render, one service that serves both the API and the built React app (see [docs/DEPLOY.md](docs/DEPLOY.md)) |
+
+## How it works
+
+```mermaid
+flowchart LR
+  B[Browser: React app] -->|same-origin /api, cookie session| A[Express API]
+  A --> M[Middleware: auth, validation, rate limits]
+  M --> S[Services: business rules]
+  S --> R[Repositories: SQL]
+  R --> D[(PostgreSQL)]
+  S --> F[Storage: local disk or S3-compatible bucket]
+```
+
+A few decisions worth a closer look:
+
+- **Sessions.** The login token lives in an httpOnly cookie, so page scripts cannot read it. The browser always calls
+  `/api` on its own origin (a dev proxy locally, the server itself in production), which keeps the cookie first-party.
+  Login gives the same error and takes about the same time for an unknown email and a wrong password, so accounts
+  cannot be enumerated.
+- **Search.** PostgreSQL full-text search (`tsvector` with a GIN index) plus a title substring match, with filters
+  passed as query parameters and results paginated.
+- **Private files.** Resumes and seeker photos are never public URLs. They are streamed through the API after a check:
+  only the owner, or an employer the person applied to, can open them.
+- **Safe uploads.** Files are checked by their content, not their name. Images are decoded and re-encoded, which strips
+  hidden metadata such as GPS location, and oversized or malformed images are rejected.
+- **Rules live on the server.** Application statuses follow fixed transitions, applying twice is impossible, and every
+  edit checks that the employer owns the listing. The UI only mirrors those rules.
+- **Tested in a browser too.** Besides the automated suites, the full hiring flow was run in a real browser. That
+  caught a bug the unit tests could not: private photos staying in the browser cache after switching accounts.
+
+## Run it locally
+
+You need Node.js 22 and Docker (or any PostgreSQL 16).
 
 ```bash
-# 1. Start PostgreSQL
-docker compose up -d
+docker compose up -d                  # PostgreSQL on :5432
 
-# 2. Configure and run the API
 cd server
-cp .env.example .env
+cp .env.example .env                  # then set JWT_SECRET to a long random string
 npm install
-npm run migrate      # create tables
-npm run seed         # demo data
-npm run dev          # http://localhost:5000/api/health
+npm run migrate                       # create the tables
+npm run seed                          # demo data and the demo accounts above
+npm run dev                           # API on http://localhost:5000
+
+cd ../client                          # in a second terminal
+npm install
+npm run dev                           # app on http://localhost:5173
 ```
 
-Demo logins (dev only), password `Password123!`:
-`employer@jobflow.dev`, `employer2@jobflow.dev`, `seeker@jobflow.dev`
+Run the tests with `npm test` in `server` (they use the database from `.env` and clean up after themselves) and in
+`client`. `npm run db:reset` in `server` rebuilds the database from scratch.
 
-Reset everything: `npm run db:reset`
+## Project structure
 
-## Auth API
-
-| Method | Endpoint | Notes |
-|---|---|---|
-| POST | `/api/auth/register` | `{ fullName, email, password, role: "seeker" \| "employer", companyName? }`; logs the user in |
-| POST | `/api/auth/login` | `{ email, password }`; sets an httpOnly `token` cookie |
-| POST | `/api/auth/logout` | clears the cookie |
-| GET | `/api/auth/me` | current user plus company (employer) or profile (seeker) |
-
-Run the tests with `npm test` in `server/` (they use the database in `DATABASE_URL` and clean up after themselves).
-
-## Jobs API
-
-| Method | Endpoint | Access | Notes |
-|---|---|---|---|
-| GET | `/api/categories` | public | category list |
-| GET | `/api/jobs` | public | `q, category, location, type, mode, salaryMin, sort, page, limit` (see below) |
-| GET | `/api/jobs/:id` | public | open jobs; owners also see their drafts / closed jobs |
-| POST | `/api/jobs` | employer | company comes from the logged-in employer |
-| PATCH | `/api/jobs/:id` | employer (owner) | partial update; `status`: `draft`, `open`, `closed` |
-| DELETE | `/api/jobs/:id` | employer (owner) | |
-| GET | `/api/employer/jobs` | employer | own listings with `applicantCount`; optional `?status=` |
-
-Search example: `/api/jobs?q=react developer&mode=remote,hybrid&type=internship&salaryMin=100000&sort=salary_desc&page=2&limit=10`.
-`type` and `mode` accept comma-separated lists. Response: `{ data: [...], pagination: { page, limit, total, totalPages } }`.
-
-## Resume upload API
-
-| Method | Endpoint | Access | Notes |
-|---|---|---|---|
-| PUT | `/api/me/resume` | seeker | `multipart/form-data`, file in field `resume`; PDF only, max `MAX_RESUME_MB` (default 5) |
-| GET | `/api/me/resume` | seeker | downloads your own default resume |
-| DELETE | `/api/me/resume` | seeker | removes it |
-
-Files are stored through a storage driver chosen by `STORAGE_DRIVER`: `local` (default; saved under `UPLOAD_DIR`) or `s3`
-(any S3-compatible bucket; set the `S3_*` variables in `.env.example` and keep the bucket private). Files are never served
-by a public URL, only through API endpoints that check who is asking.
-
-## Applications API
-
-| Method | Endpoint | Access | Notes |
-|---|---|---|---|
-| POST | `/api/jobs/:id/applications` | seeker | `multipart/form-data`: `coverLetter` (optional) and `resume` (PDF, optional: falls back to your saved default resume) |
-| GET | `/api/me/applications` | seeker | own applications with job info; optional `?status=` |
-| GET | `/api/jobs/:id/applications` | employer (owner) | applicants with profile info; `?status=&page=&limit=` |
-| GET | `/api/applications/:id` | applicant or job owner | details (others get 404) |
-| PATCH | `/api/applications/:id/status` | employer (owner) | `{ "status": "reviewed" \| "shortlisted" \| "rejected" \| "hired" }`, following the allowed transitions |
-| GET | `/api/applications/:id/resume` | applicant or job owner | downloads the resume that was sent |
-
-`GET /api/jobs/:id` also returns `viewer.application` (id and status, or `null`) when a seeker is logged in.
-
-## Postman
-
-Import `docs/Jobflow.postman_collection.json`. Login sets an httpOnly cookie that Postman sends automatically
-(one session at a time: log in as the role you need). Requests save `jobId` and `applicationId` into collection variables.
-
-## Saved jobs, profile and companies API
-
-| Method | Endpoint | Access | Notes |
-|---|---|---|---|
-| POST / DELETE | `/api/jobs/:id/save` | seeker | save / unsave (idempotent); only open jobs can be saved |
-| GET | `/api/me/saved-jobs` | seeker | newest first, paginated; closed/expired jobs stay listed with `available: false` |
-| PATCH | `/api/me/profile` | seeker or employer | seeker: `fullName, headline, bio, skills[], location`; employer (company): `fullName, name, description, website, location`. Send only what changes; `""` or `null` clears a field |
-| GET | `/api/companies` | public | companies with open jobs, busiest first; `?q=&page=&limit=` |
-| GET | `/api/companies/:id` | public | company details with `openJobCount`; its jobs: `GET /api/jobs?company=<id>` |
-
-For a logged-in seeker, `GET /api/jobs` adds `saved: true|false` to each job, and `GET /api/jobs/:id` returns `viewer: { application, saved }`.
-
-## Frontend (`client/`)
-
-React 19, Vite, Tailwind CSS 4, React Router, TanStack Query, React Hook Form + Zod.
-
-```bash
-cd client
-npm install
-npm run dev      # http://localhost:5173 (forwards /api to the API on :5000)
-npm test         # component and unit tests (Vitest + Testing Library)
-npm run build    # production build in client/dist
+```
+client/    React app (pages, components, API hooks)
+server/    Express API (routes, controllers, services, repositories, SQL migrations, tests)
+docs/      DESIGN.md, DEPLOY.md, API.md, Postman collection, screenshots
+render.yaml, docker-compose.yml, .github/workflows/ci.yml
 ```
 
-The browser always calls `/api` on its own origin (a Vite proxy in development, and in production the server itself
-serves the built app), so the login cookie is first-party.
+## Documentation
 
-## Deployment
-
-Free, in about 45 minutes: Render (app) + Neon (Postgres) + Backblaze B2 (files). Step by step, with the limits to
-re-check and a troubleshooting table, in [docs/DEPLOY.md](docs/DEPLOY.md). `render.yaml` describes the service.
-
-Pages: job search, job details with apply and save, log in, register, saved jobs, applications with a status tracker,
-seeker profile with resume upload, public Companies pages, and the employer side (dashboard, post and edit a job with a
-live preview, applicants with status changes and resume download, company profile).
-
-## Profile pictures
-
-| Method | Endpoint | Access | Notes |
-|---|---|---|---|
-| PUT / DELETE | `/api/me/avatar` | seeker | `multipart/form-data`, field `image` (PNG, JPEG or WebP, max `MAX_IMAGE_MB`, default 5). Stored as a 256 px square |
-| PUT / DELETE | `/api/me/logo` | employer | same rules; keeps its shape and transparency, at most 512 px |
-| GET | `/api/companies/:id/logo` | public | cached for a year (the URL carries a version that changes when the logo does) |
-| GET | `/api/users/:id/avatar` | the seeker, or an employer they applied to | short private cache, tied to the login cookie |
-
-Uploads are decoded and re-encoded as WebP with `sharp`, and the original is never kept. That strips metadata such as
-GPS location from phone photos, applies rotation, and rejects SVG, GIF, tiny images and "image bombs"
-(more than 25 million pixels). Pictures use the same storage driver as resumes (`STORAGE_DRIVER`).
-Run `npm run migrate` once to add the new columns.
+- [docs/API.md](docs/API.md): every endpoint, plus a Postman collection
+- [docs/DESIGN.md](docs/DESIGN.md): architecture, UML and ER diagrams, database schema, wireframes
+- [docs/DEPLOY.md](docs/DEPLOY.md): deploying for free, limits to re-check, troubleshooting
