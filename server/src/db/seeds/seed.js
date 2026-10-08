@@ -1,4 +1,6 @@
-// Demo data so reviewers see a populated board. Safe to re-run in dev (wipes data).
+// LOCAL DEVELOPMENT ONLY: fills your own machine's database with fake companies, jobs and accounts so the UI has
+// something to show. It wipes users, companies, jobs and applications. Do not run it against the live site: real
+// content there is added through the app itself. (Job categories are not part of this file; they come from migrations.)
 import bcrypt from 'bcryptjs';
 import { pool } from '../pool.js';
 import { env } from '../../config/env.js';
@@ -9,7 +11,6 @@ if (env.nodeEnv === 'production' && !process.argv.includes('--force')) {
 }
 
 const DEMO_PASSWORD = 'Password123!';
-const categories = ['Software Engineering', 'Design', 'Data & Analytics', 'Marketing', 'Finance', 'Customer Support'];
 
 const companies = [
   { key: 'acme', owner: 'Acme Employer', email: 'employer@jobflow.dev', name: 'Acme Technologies', location: 'Colombo', website: 'https://acme.example', description: 'Product studio building web and mobile apps.' },
@@ -77,14 +78,13 @@ async function seed() {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    await client.query('TRUNCATE saved_jobs, applications, jobs, companies, categories, seeker_profiles, users RESTART IDENTITY CASCADE');
+    await client.query('TRUNCATE saved_jobs, applications, jobs, companies, seeker_profiles, users RESTART IDENTITY CASCADE');
 
     const hash = await bcrypt.hash(DEMO_PASSWORD, 10);
-    const catIds = {};
-    for (const name of categories) {
-      const { rows } = await client.query('INSERT INTO categories (name) VALUES ($1) RETURNING id', [name]);
-      catIds[name] = rows[0].id;
-    }
+    // Categories are reference data from migration 003, not seed data
+    const { rows: categoryRows } = await client.query('SELECT id, name FROM categories');
+    const catIds = Object.fromEntries(categoryRows.map((r) => [r.name, r.id]));
+    for (const [, cat] of jobs) if (!catIds[cat]) throw new Error(`Category "${cat}" is missing. Run npm run migrate first.`);
 
     const companyIds = {};
     for (const c of companies) {
@@ -117,7 +117,7 @@ async function seed() {
     }
 
     await client.query('COMMIT');
-    console.log(`Seeded ${categories.length} categories, ${companies.length} employers, 1 seeker, ${jobs.length} jobs.`);
+    console.log(`Seeded ${companies.length} employers, 1 seeker, ${jobs.length} jobs.`);
     console.log(`Demo logins (password: ${DEMO_PASSWORD}): seeker@jobflow.dev, employer@jobflow.dev, employer2@jobflow.dev`);
   } catch (err) {
     await client.query('ROLLBACK');

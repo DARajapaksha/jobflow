@@ -8,13 +8,12 @@ save jobs and apply with a PDF resume.
 **Live demo: https://jobflow-8zdp.onrender.com**
 
 The demo runs on a free host, so the first visit after a quiet spell can take up to a minute to wake up.
-Log in with a demo account (password `Password123!` for all):
 
-| Role | Email |
-|---|---|
-| Job seeker | `seeker@jobflow.dev` |
-| Employer (Acme Technologies) | `employer@jobflow.dev` |
-| Employer (LankaSoft) | `employer2@jobflow.dev` |
+There are no shared logins. Create your own account (any email address; no email verification) and choose
+**I'm looking for work** to search and apply, or **I'm hiring** to post listings and review applicants. Everything
+you create is real data in the app's database, and the job categories come with the database itself.
+
+> Jobflow is a portfolio project. Please don't upload documents you would not want stored (use a dummy PDF for a resume).
 
 ![The Jobflow search page](docs/screenshots/01-search.png)
 
@@ -52,7 +51,7 @@ Log in with a demo account (password `Password123!` for all):
 | Backend | Node.js, Express 5, PostgreSQL (plain SQL with `pg`, no ORM) |
 | Authentication | JWT in an httpOnly cookie, bcrypt password hashing, role-based access control |
 | Files | `multer` uploads, `sharp` image processing, a storage layer with a local-disk driver and an S3-compatible driver |
-| Quality | 66 API integration tests (real PostgreSQL), 42 component and unit tests (Vitest, Testing Library), GitHub Actions CI |
+| Quality | 68 API integration tests (real PostgreSQL), 42 component and unit tests (Vitest, Testing Library), GitHub Actions CI |
 | Deployment | Render, one service that serves both the API and the built React app (see [docs/DEPLOY.md](docs/DEPLOY.md)) |
 
 ## How it works
@@ -95,7 +94,7 @@ cd server
 cp .env.example .env                  # then set JWT_SECRET to a long random string
 npm install
 npm run migrate                       # create the tables
-npm run seed                          # demo data and the demo accounts above
+npm run seed                          # optional, local only: fake companies, jobs and accounts for development
 npm run dev                           # API on http://localhost:5000
 
 cd ../client                          # in a second terminal

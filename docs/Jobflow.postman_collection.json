@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Jobflow API",
-    "description": "All Jobflow endpoints. Start the API (npm run dev), run `npm run seed`, then log in. Login sets an httpOnly cookie that Postman's cookie jar sends automatically (one session per host: logging in as another role replaces it). Demo password: Password123!",
+    "description": "All Jobflow endpoints. Start the API (npm run dev), register an account (Auth folder) or set the email and password collection variables, then log in. Login sets an httpOnly cookie that Postman's cookie jar sends automatically (one session per host: logging in as another role replaces it).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -23,6 +23,14 @@
     },
     {
       "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "email",
+      "value": ""
+    },
+    {
+      "key": "password",
       "value": ""
     }
   ],
@@ -53,7 +61,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"New Seeker\",\n  \"email\": \"new.seeker@example.com\",\n  \"password\": \"Password123!\",\n  \"role\": \"seeker\"\n}",
+              "raw": "{\n  \"fullName\": \"New Seeker\",\n  \"email\": \"new.seeker@example.com\",\n  \"password\": \"{{password}}\",\n  \"role\": \"seeker\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -85,7 +93,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"New Employer\",\n  \"email\": \"new.employer@example.com\",\n  \"password\": \"Password123!\",\n  \"role\": \"employer\",\n  \"companyName\": \"New Co\"\n}",
+              "raw": "{\n  \"fullName\": \"New Employer\",\n  \"email\": \"new.employer@example.com\",\n  \"password\": \"{{password}}\",\n  \"role\": \"employer\",\n  \"companyName\": \"New Co\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -95,7 +103,7 @@
           }
         },
         {
-          "name": "Login as seeker (demo)",
+          "name": "Log in",
           "request": {
             "method": "POST",
             "header": [
@@ -117,45 +125,14 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"seeker@jobflow.dev\",\n  \"password\": \"Password123!\"\n}",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
-            }
-          }
-        },
-        {
-          "name": "Login as employer (demo)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "login"
-              ]
             },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"employer@jobflow.dev\",\n  \"password\": \"Password123!\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
+            "description": "Set the email and password collection variables to an account you registered. The session cookie is stored by Postman."
           }
         },
         {

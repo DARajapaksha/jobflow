@@ -80,13 +80,12 @@ This catches typos before Render does. In `server/.env` temporarily set the Neon
 cd D:\Projects\jobflow\client; npm run build
 cd ..\server
 $env:SERVE_CLIENT = "true"
-npm run migrate        # creates the tables in Neon
-npm run seed           # demo jobs and accounts (see the warning in section 6)
+npm run migrate        # creates the tables and the job categories in Neon
 npm run dev            # open http://localhost:5000
 ```
 
-Log in as `seeker@jobflow.dev` (password `Password123!`), upload a profile photo, then check that the file appears in
-your B2 bucket. Put `.env` back to your local values afterwards.
+Register a test job seeker, upload a profile photo, then check that the file appears in your B2 bucket.
+Put `.env` back to your local values afterwards, and delete the test user (a database client such as Neon's SQL editor works).
 
 ## 4. Create the Render service
 
@@ -104,19 +103,25 @@ Replace the address with yours (Render shows it, `https://jobflow-xxxx.onrender.
 
 1. `/api/health` shows `{"status":"ok"}` and `/api/health/ready` shows `"database":"up"`.
 2. The home page loads with jobs, and a refresh on a job page still works.
-3. Log in as `employer@jobflow.dev`, upload a company logo, post a job.
-4. Log in as `seeker@jobflow.dev`, apply with a PDF, and check the file is in your B2 bucket.
+3. Register an employer, upload a company logo and post a job (the Category list should be full).
+4. Register a job seeker, apply with a PDF, and check the file is in your B2 bucket.
 5. The Render **Logs** tab shows no red errors.
 
-## 6. Demo data and safety
+## 6. Content and safety
 
-- `npm run seed` **wipes every table** and inserts the demo data. Run it once. Never run it again after real people
-  have signed up (the server refuses to seed when `NODE_ENV=production` unless you add `--force`).
-- The demo accounts and their password are public in the README, so anyone can log in as them. That is the point of a
-  demo, but do not store anything personal in them. To clean up vandalism, run the seed again from your computer with
-  the Neon connection string set.
+- **Do not run `npm run seed` against the live database.** It is for development machines only: it fills the database
+  with fake companies and accounts and **wipes users, companies, jobs and applications**. The server refuses to run it
+  when `NODE_ENV=production` unless you add `--force`.
+- **The live site starts empty, and that is correct.** The only data it needs is the list of job categories, and that
+  arrives with the database migrations (`003_categories.sql`), so the search filter and the "post a job" form work from
+  the first minute.
+- **Add real content through the app.** Register an employer account for an organisation you actually represent and
+  post genuine listings. Do not enter invented listings under a real company's name: job seekers may apply to them.
+  If you have no genuine listings yet, an empty board with working sign-up is better than a convincing fake one.
 - Registration is open. Uploads are limited (5 MB, PDF or image only, images re-encoded) and the API is rate limited.
   B2's free 10 GB is a hard ceiling; check the bucket now and then.
+- Resumes can contain phone numbers and home addresses. The README asks visitors to use a dummy PDF, and files are
+  only ever served to the owner and to employers they applied to.
 
 ## 7. What visitors will experience
 
