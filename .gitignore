@@ -4,3 +4,6 @@ uploads/
 dist/
 coverage/
 .DS_Store
+
+.postman/
+postman/
