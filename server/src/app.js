@@ -24,7 +24,12 @@ app.use(
     contentSecurityPolicy: {
       // Defaults (same-origin scripts, styles, images, fonts and API calls) are exactly what the app needs.
       // upgrade-insecure-requests is dropped: it breaks plain-http localhost testing and nothing here loads over http.
-      directives: { ...helmet.contentSecurityPolicy.getDefaultDirectives(), 'upgrade-insecure-requests': null },
+      // blob: images are pictures the browser itself made from a file the user chose (the photo editor preview).
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        'img-src': ["'self'", 'data:', 'blob:'],
+        'upgrade-insecure-requests': null,
+      },
     },
   }),
 );

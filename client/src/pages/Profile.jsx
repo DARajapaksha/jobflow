@@ -133,7 +133,7 @@ function SeekerProfile() {
         kind="avatar"
         name={user.fullName}
         imageUrl={profile?.avatarUrl}
-        onUpload={(file) => upload.mutate(file, { onError: notifyError })}
+        onUpload={(file) => upload.mutateAsync(file)} // rejects on failure so the photo editor can show the error
         onRemove={() => remove.mutate(undefined, { onError: notifyError })}
         uploading={upload.isPending}
         removing={remove.isPending}

@@ -81,6 +81,7 @@ test('security headers: strict CSP without upgrade-insecure-requests, no framing
   assert.match(csp, /script-src 'self'/);
   assert.match(csp, /frame-ancestors 'self'/);
   assert.doesNotMatch(csp, /upgrade-insecure-requests/);
+  assert.match(csp, /img-src 'self' data: blob:(;|$)/); // blob: lets the photo editor preview a chosen file; no other hosts allowed
   assert.equal(res.headers['x-content-type-options'], 'nosniff');
   assert.ok(!res.headers['x-powered-by']);
 });

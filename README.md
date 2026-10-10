@@ -23,7 +23,7 @@ you create is real data in the app's database, and the job categories come with 
 - Search by keyword and location, and filter by job type, work mode, category and minimum salary. The search lives in
   the URL, so a result page can be shared and the back button works.
 - Save jobs, then apply with a cover letter and a PDF resume (upload one per application, or reuse a saved resume).
-- Follow every application on a status tracker, and keep a profile with a photo, headline and skills.
+- Follow every application on a status tracker, and keep a profile with a photo (framed in an editor where you can move, zoom and rotate it before saving), a headline and skills.
 
 **Employers**
 - Post, edit, close, reopen and delete listings. Drafts stay private until published, and a live preview shows how the
@@ -51,7 +51,7 @@ you create is real data in the app's database, and the job categories come with 
 | Backend | Node.js, Express 5, PostgreSQL (plain SQL with `pg`, no ORM) |
 | Authentication | JWT in an httpOnly cookie, bcrypt password hashing, role-based access control |
 | Files | `multer` uploads, `sharp` image processing, a storage layer with a local-disk driver and an S3-compatible driver |
-| Quality | 68 API integration tests (real PostgreSQL), 45 component and unit tests (Vitest, Testing Library), GitHub Actions CI |
+| Quality | 68 API integration tests (real PostgreSQL), 56 component and unit tests (Vitest, Testing Library), GitHub Actions CI |
 | Deployment | Render, one service that serves both the API and the built React app (see [docs/DEPLOY.md](docs/DEPLOY.md)) |
 
 ## How it works

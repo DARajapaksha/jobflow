@@ -1,15 +1,16 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import Avatar from './Avatar';
 import CompanyMark from './CompanyMark';
-import { Button } from './ui';
-import { MAX_IMAGE_MB } from '../lib/constants';
+import PhotoEditor from './PhotoEditor';
+import { Button, Modal } from './ui';
+import { MAX_IMAGE_MB, MAX_PHOTO_ORIGINAL_MB } from '../lib/constants';
 
 const TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 const COPY = {
   avatar: {
     title: 'Profile photo',
-    hint: `PNG, JPEG or WebP, up to ${MAX_IMAGE_MB} MB. It is cropped to a square. Employers you apply to can see it.`,
+    hint: `PNG, JPEG or WebP, up to ${MAX_PHOTO_ORIGINAL_MB} MB. You choose how it is framed before saving. Employers you apply to can see it.`,
     add: 'Upload photo',
     change: 'Change photo',
   },
@@ -21,9 +22,9 @@ const COPY = {
   },
 };
 
-export function imageProblem(file) {
+export function imageProblem(file, maxMb = MAX_IMAGE_MB) {
   if (!TYPES.includes(file.type) && !/\.(png|jpe?g|webp)$/i.test(file.name)) return 'Use a PNG, JPEG or WebP image.';
-  if (file.size > MAX_IMAGE_MB * 1024 * 1024) return `That image is over ${MAX_IMAGE_MB} MB. Choose a smaller one.`;
+  if (file.size > maxMb * 1024 * 1024) return `That image is over ${maxMb} MB. Choose a smaller one.`;
   return null;
 }
 
@@ -31,14 +32,22 @@ export function imageProblem(file) {
 export default function ImageUpload({ kind, name, imageUrl, onUpload, onRemove, uploading = false, removing = false }) {
   const input = useRef(null);
   const copy = COPY[kind];
+  const [editing, setEditing] = useState(null); // the chosen file while the photo editor is open
 
   const onFile = (e) => {
     const file = e.target.files?.[0];
     e.target.value = ''; // so choosing the same file again still fires
     if (!file) return;
-    const problem = imageProblem(file);
+    // Profile photos are framed in the editor first; logos keep their own shape and upload directly.
+    const problem = imageProblem(file, kind === 'avatar' ? MAX_PHOTO_ORIGINAL_MB : MAX_IMAGE_MB);
     if (problem) return toast.error(problem);
-    onUpload(file);
+    if (kind === 'avatar') setEditing(file);
+    else onUpload(file);
+  };
+
+  const saveEdited = async (blob) => {
+    await onUpload(new File([blob], 'photo.jpg', { type: 'image/jpeg' })); // rejects on failure, which keeps the editor open
+    setEditing(null);
   };
 
   return (
@@ -57,6 +66,10 @@ export default function ImageUpload({ kind, name, imageUrl, onUpload, onRemove, 
           )}
         </div>
       </div>
+
+      <Modal open={Boolean(editing)} onClose={() => setEditing(null)} title="Adjust your photo">
+        {editing && <PhotoEditor file={editing} onCancel={() => setEditing(null)} onSave={saveEdited} />}
+      </Modal>
     </section>
   );
 }

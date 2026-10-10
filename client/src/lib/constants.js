@@ -11,6 +11,8 @@ export const APPLICATION_STAGES = [
 
 export const MAX_RESUME_MB = 5;
 export const MAX_IMAGE_MB = 5;
+// Profile photos are cropped in the browser and only a small result is uploaded, so the original may be larger.
+export const MAX_PHOTO_ORIGINAL_MB = 20;
 
 export const JOB_STATUSES = { draft: 'Draft', open: 'Open', closed: 'Closed' };
 export const JOB_STATUS_TONE = { draft: 'citrine', open: 'tea', closed: 'neutral' };
