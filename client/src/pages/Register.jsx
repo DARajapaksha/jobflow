@@ -45,7 +45,7 @@ export default function Register() {
   const [formError, setFormError] = useState('');
   const { register, handleSubmit, watch, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: { role: 'seeker' },
+    defaultValues: { role: params.get('role') === 'employer' ? 'employer' : 'seeker' },
   });
   const role = watch('role');
 

@@ -4,6 +4,7 @@ import { useCategories, useJobs } from '../api/hooks';
 import { errorMessage } from '../api/client';
 import JobRow from '../components/JobRow';
 import BookmarkButton from '../components/BookmarkButton';
+import EmptyBoard from '../components/EmptyBoard';
 import Pagination from '../components/Pagination';
 import { Button, Container, EmptyState, Select, Skeleton, ToggleChip } from '../components/ui';
 import { JOB_TYPES, WORK_MODES } from '../lib/constants';
@@ -189,6 +190,8 @@ export default function Home() {
               <EmptyState title="Jobs couldn’t be loaded" action={<Button onClick={() => refetch()}>Try again</Button>}>
                 {errorMessage(error)}
               </EmptyState>
+            ) : data.pagination.total === 0 && !hasFilters ? (
+              <EmptyBoard />
             ) : data.data.length === 0 ? (
               <EmptyState
                 title="No jobs match your search"

@@ -51,7 +51,7 @@ you create is real data in the app's database, and the job categories come with 
 | Backend | Node.js, Express 5, PostgreSQL (plain SQL with `pg`, no ORM) |
 | Authentication | JWT in an httpOnly cookie, bcrypt password hashing, role-based access control |
 | Files | `multer` uploads, `sharp` image processing, a storage layer with a local-disk driver and an S3-compatible driver |
-| Quality | 68 API integration tests (real PostgreSQL), 42 component and unit tests (Vitest, Testing Library), GitHub Actions CI |
+| Quality | 68 API integration tests (real PostgreSQL), 45 component and unit tests (Vitest, Testing Library), GitHub Actions CI |
 | Deployment | Render, one service that serves both the API and the built React app (see [docs/DEPLOY.md](docs/DEPLOY.md)) |
 
 ## How it works
