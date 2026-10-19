@@ -24,9 +24,13 @@ test('a migrated database already has the job categories', async () => {
 
 test('the categories migration can be re-applied without creating duplicates or touching existing rows', async () => {
   const sql = fs.readFileSync(path.resolve(import.meta.dirname, '../src/db/migrations/003_categories.sql'), 'utf8');
-  const before = (await pool.query('SELECT id, name FROM categories ORDER BY id')).rows;
+  // Only the categories this migration owns: other test files add and remove temporary categories at the same time.
+  const owned = [...sql.matchAll(/\('([^']+)'\)/g)].map((m) => m[1]);
+  assert.ok(owned.length >= 10);
+  const rows = async () => (await pool.query('SELECT id, name FROM categories WHERE name = ANY($1) ORDER BY id', [owned])).rows;
+  const before = await rows();
+  assert.equal(before.length, owned.length);
   await pool.query(sql);
   await pool.query(sql);
-  const after = (await pool.query('SELECT id, name FROM categories ORDER BY id')).rows;
-  assert.deepEqual(after, before);
+  assert.deepEqual(await rows(), before); // no duplicates, and the existing rows (and their ids) are untouched
 });

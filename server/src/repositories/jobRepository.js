@@ -28,6 +28,19 @@ const toSummary = (r) => ({
 
 const escapeLike = (s) => s.replace(/[\\%_]/g, '\\$&');
 
+// ---- typo-tolerant search -------------------------------------------------------------------------------------------
+// A job matches a query if ANY of these holds:
+//   1. exact: full-text match (with stemming) or the query is a substring of the title      -> ranked first
+//   2. every word of the query matches: exactly, as a substring of the title / company / category, or within a
+//      small edit distance of a word in them ("develper" ~ "developer", "desinger" ~ "designer")
+//   3. the whole query run together is within a couple of edits of some words of the title or company name,
+//      also run together ("fullstack" / "foll stack" ~ "Full Stack Developer" and ~ "Fullstack Engineer")
+// For a few thousand jobs this is instant. A much larger table would need indexes (e.g. GIN trigram on jf_norm(title)).
+const WORD_SPLIT = /[\s\-_./,()&+:;'"!?]+/; // keep in sync with jf_words / jf_norm in migration 004
+const searchWords = (q) => q.toLowerCase().split(WORD_SPLIT).filter((w) => w.length >= 2).slice(0, 6);
+// Allowed typos per word: none for short words (too many false matches), one for 4-7 letters, two for longer words
+const typoBudget = (w) => (w.length >= 8 ? 2 : w.length >= 4 ? 1 : 0);
+
 const SORTS = {
   newest: 'j.created_at DESC',
   salary_desc: 'j.salary_max DESC NULLS LAST, j.created_at DESC',
@@ -42,12 +55,37 @@ export async function search({ q, category, company, location, type, mode, salar
   const where = ["j.status = 'open'", '(j.expires_at IS NULL OR j.expires_at > now())'];
   let rank = null;
 
+  let exact = null;
   if (q) {
     const text = add(q);
     const like = add(`%${escapeLike(q)}%`);
-    // Full-text match (stemming: "developers" finds "developer") or a plain substring match on the title
-    where.push(`(j.search_vector @@ websearch_to_tsquery('english', ${text}) OR j.title ILIKE ${like})`);
-    rank = `ts_rank(j.search_vector, websearch_to_tsquery('english', ${text}))`;
+    const tsquery = `websearch_to_tsquery('english', ${text})`;
+    exact = `(j.search_vector @@ ${tsquery} OR j.title ILIKE ${like})`;
+
+    const wordMatch = (word) => {
+      const w = add(word);
+      const wl = add(`%${escapeLike(word)}%`);
+      const parts = [`j.search_vector @@ websearch_to_tsquery('english', ${w})`, `j.title ILIKE ${wl}`, `c.name ILIKE ${wl}`, `cat.name ILIKE ${wl}`];
+      const k = typoBudget(word);
+      if (k > 0) {
+        parts.push(`EXISTS (
+          SELECT 1 FROM unnest(string_to_array(jf_words(j.title) || ' ' || jf_words(c.name) || ' ' || coalesce(jf_words(cat.name), ''), ' ')) AS tw
+          WHERE tw <> '' AND levenshtein_less_equal(${w}, tw, ${k}) <= ${k})`);
+      }
+      return `(${parts.join(' OR ')})`;
+    };
+    const words = searchWords(q);
+    const everyWord = words.length ? `(${words.map(wordMatch).join(' AND ')})` : 'false';
+
+    const norm = `jf_norm(${text})`;
+    const budget = `(CASE WHEN char_length(${norm}) >= 9 THEN 2 ELSE 1 END)`;
+    const titleSimilarity = `word_similarity(${norm}, jf_norm(j.title))`; // only used to order close matches
+    const compound = `(char_length(${norm}) >= 5 AND (jf_close_phrase(${norm}, j.title, ${budget}) OR jf_close_phrase(${norm}, c.name, ${budget})))`;
+
+    where.push(`(${exact} OR ${everyWord} OR ${compound})`);
+    // exact matches first (2 + text-search rank), then close matches (below 2, closest first)
+    rank = `CASE WHEN ${exact} THEN 2 + ts_rank(j.search_vector, ${tsquery})
+                 ELSE 1 + 0.99 * GREATEST(CASE WHEN char_length(${norm}) >= 5 THEN ${titleSimilarity} ELSE 0 END, 0.5) END`;
   }
   if (category) where.push(`j.category_id = ${add(category)}`);
   if (company) where.push(`j.company_id = ${add(company)}`);
@@ -60,8 +98,10 @@ export async function search({ q, category, company, location, type, mode, salar
   const orderBy = effectiveSort === 'relevance' && rank ? `${rank} DESC, j.created_at DESC` : SORTS[effectiveSort] ?? SORTS.newest;
   const whereSql = `WHERE ${where.join(' AND ')}`;
 
-  const countResult = await pool.query(`SELECT count(*)::int AS total ${FROM} ${whereSql}`, params);
+  const countResult = await pool.query(`SELECT count(*)::int AS total${exact ? `, bool_or(${exact}) AS has_exact` : ''} ${FROM} ${whereSql}`, params);
   const total = countResult.rows[0].total;
+  // "approximate": there were results, but none of them matches the query exactly (so the UI can say so)
+  const approximate = Boolean(q) && total > 0 && !countResult.rows[0].has_exact;
 
   // Logged-in seekers get a per-job "saved" flag so the UI can draw filled bookmarks
   const savedSql = viewerId
@@ -77,6 +117,7 @@ export async function search({ q, category, company, location, type, mode, salar
   return {
     data: rows.map(toSummary),
     pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    approximate,
   };
 }
 

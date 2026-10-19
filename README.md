@@ -20,8 +20,10 @@ you create is real data in the app's database, and the job categories come with 
 ## What you can do
 
 **Job seekers**
-- Search by keyword and location, and filter by job type, work mode, category and minimum salary. The search lives in
-  the URL, so a result page can be shared and the back button works.
+- Search by keyword and location, and filter by job type, work mode, category and minimum salary. The search forgives
+  typos and spacing: "fullstack", "full-stack", "foll stack" and "full stack" all find Full Stack jobs, and the page
+  says when the results are only the closest matches. The search lives in the URL, so a result page can be shared and
+  the back button works.
 - Save jobs, then apply with a cover letter and a PDF resume (upload one per application, or reuse a saved resume).
 - Follow every application on a status tracker, and keep a profile with a photo (framed in an editor where you can move, zoom and rotate it before saving), a headline and skills.
 
@@ -51,7 +53,7 @@ you create is real data in the app's database, and the job categories come with 
 | Backend | Node.js, Express 5, PostgreSQL (plain SQL with `pg`, no ORM) |
 | Authentication | JWT in an httpOnly cookie, bcrypt password hashing, role-based access control |
 | Files | `multer` uploads, `sharp` image processing, a storage layer with a local-disk driver and an S3-compatible driver |
-| Quality | 68 API integration tests (real PostgreSQL), 56 component and unit tests (Vitest, Testing Library), GitHub Actions CI |
+| Quality | 83 API integration tests (real PostgreSQL), 57 component and unit tests (Vitest, Testing Library), GitHub Actions CI |
 | Deployment | Render, one service that serves both the API and the built React app (see [docs/DEPLOY.md](docs/DEPLOY.md)) |
 
 ## How it works
@@ -72,8 +74,9 @@ A few decisions worth a closer look:
   `/api` on its own origin (a dev proxy locally, the server itself in production), which keeps the cookie first-party.
   Login gives the same error and takes about the same time for an unknown email and a wrong password, so accounts
   cannot be enumerated.
-- **Search.** PostgreSQL full-text search (`tsvector` with a GIN index) plus a title substring match, with filters
-  passed as query parameters and results paginated.
+- **Search.** PostgreSQL full-text search (`tsvector` with a GIN index) plus a title substring match, made forgiving
+  with two standard extensions: edit distance (`fuzzystrmatch`) for typos in a word and trigram similarity (`pg_trgm`) to
+  order close matches. Filters are query parameters and results are paginated.
 - **Private files.** Resumes and seeker photos are never public URLs. They are streamed through the API after a check:
   only the owner, or an employer the person applied to, can open them.
 - **Safe uploads.** Files are checked by their content, not their name. Images are decoded and re-encoded, which strips
@@ -102,8 +105,9 @@ npm install
 npm run dev                           # app on http://localhost:5173
 ```
 
-Run the tests with `npm test` in `server` (they use the database from `.env` and clean up after themselves) and in
-`client`. `npm run db:reset` in `server` rebuilds the database from scratch.
+Run the tests with `npm test` in `server` and in `client`. The server tests create and delete data, so they refuse to run
+against any database that is not on your own computer (set `DATABASE_URL` to the local one, or `ALLOW_REMOTE_TEST_DB=true`
+if you really mean it). `npm run db:reset` in `server` rebuilds the database from scratch.
 
 ## Project structure
 

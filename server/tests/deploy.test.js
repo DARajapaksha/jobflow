@@ -114,7 +114,13 @@ test('local storage in production warns; a missing client build stops the server
 });
 
 // ---- serverless databases drop idle connections ----
-test('a dropped database connection does not crash the server, and the next query works', async () => {
+test('a dropped database connection does not crash the server, and the next query works', async (t) => {
+  const tagged = (await pool.query('SHOW application_name')).rows[0].application_name === `deploytest_${run}`;
+  if (!tagged) {
+    // Connection poolers (e.g. Neon's "-pooler" host) do not pass the tag through, so this test's own connections
+    // cannot be singled out, and it must not drop other people's. Run it against a direct (local) database.
+    return t.skip('the database connection is pooled, so this test cannot identify its own connections');
+  }
   await pool.query('SELECT 1'); // opens an idle connection tagged with this test's application_name
   const admin = new pg.Client({ connectionString: baseUrl });
   await admin.connect();
@@ -185,4 +191,36 @@ test('S3 client works against a path-style S3 server and does not send checksum 
   } finally {
     server.close();
   }
+});
+
+// ---- safety rails around the database settings ----
+const serverDir = path.resolve(import.meta.dirname, '..');
+const runNode = (args, env) => spawnSync(process.execPath, args, { cwd: serverDir, env: { PATH: process.env.PATH, ...env }, encoding: 'utf8' });
+
+test('the test guard refuses a remote database unless explicitly allowed', () => {
+  const remote = 'postgresql://u:p@ep-cool-123-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require';
+  const refused = runNode(['--import', './tests/guard.js', '-e', 'console.log("tests would run")'], { DATABASE_URL: remote });
+  assert.equal(refused.status, 1);
+  assert.match(refused.stderr, /Refusing to run the tests/);
+  assert.match(refused.stderr, /docker compose up -d/);
+  assert.ok(!refused.stdout.includes('tests would run'));
+
+  const allowed = runNode(['--import', './tests/guard.js', '-e', 'console.log("tests would run")'], { DATABASE_URL: remote, ALLOW_REMOTE_TEST_DB: 'true' });
+  assert.equal(allowed.status, 0, allowed.stderr);
+  for (const local of ['postgres://jobflow:jobflow@localhost:5432/jobflow', 'postgres://jobflow:jobflow@127.0.0.1:5432/jobflow']) {
+    assert.equal(runNode(['--import', './tests/guard.js', '-e', '0'], { DATABASE_URL: local }).status, 0, local);
+  }
+});
+
+test('deprecated sslmode values are made explicit (verify-full) so a future pg upgrade cannot weaken them', () => {
+  const show = (url) =>
+    runNode(['--input-type=module', '-e', "const { env } = await import('./src/config/env.js'); console.log(env.databaseUrl)"], { DATABASE_URL: url, JWT_SECRET: 'x' }).stdout.trim();
+  const base = 'postgresql://u:p@host.example.com/db';
+  assert.equal(show(`${base}?sslmode=require`), `${base}?sslmode=verify-full`);
+  assert.equal(show(`${base}?sslmode=require&channel_binding=require`), `${base}?sslmode=verify-full&channel_binding=require`);
+  assert.equal(show(`${base}?sslmode=prefer`), `${base}?sslmode=verify-full`);
+  assert.equal(show(`${base}?sslmode=verify-ca`), `${base}?sslmode=verify-full`);
+  assert.equal(show(`${base}?sslmode=verify-full`), `${base}?sslmode=verify-full`); // already explicit
+  assert.equal(show(`${base}?sslmode=disable`), `${base}?sslmode=disable`); // left alone
+  assert.equal(show(base), base); // no sslmode: untouched (e.g. a local database)
 });

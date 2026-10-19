@@ -157,6 +157,7 @@ Replace the address with yours (Render shows it, `https://jobflow-xxxx.onrender.
 | `Missing required env var` or `JWT_SECRET must be a random string` | A variable is missing or too short. `JWT_SECRET` needs 32+ characters (Render generates one). |
 | `Build the client first` | The client build did not run. Check the build command in Render. |
 | Slow or failing first request after a quiet spell | Normal cold start. If it stays broken, check `DATABASE_URL` and that `DATABASE_SSL` is `true`. |
+| Startup log says `permission denied to create extension` | The search migration installs `pg_trgm` and `fuzzystrmatch`. On Neon the project owner can do this. If your host refuses, run `CREATE EXTENSION IF NOT EXISTS pg_trgm; CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;` in its SQL editor as the owner, then redeploy. |
 | `/api/health/ready` fails but `/api/health` works | The database is unreachable: wrong or expired `DATABASE_URL`, or the Neon project is suspended. |
 | Logging in does nothing | Use the `https://` address (the session cookie is Secure). |
 | Uploads fail with a storage error | Check `S3_ENDPOINT` (starts with `https://s3.`), `S3_REGION`, the bucket name and that the key is allowed to write to that bucket. If the name does not resolve, set `S3_FORCE_PATH_STYLE=true`. |

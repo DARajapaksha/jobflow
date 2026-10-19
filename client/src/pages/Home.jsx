@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useCategories, useJobs } from '../api/hooks';
 import { errorMessage } from '../api/client';
 import JobRow from '../components/JobRow';
+import ApproximateNotice from '../components/ApproximateNotice';
 import BookmarkButton from '../components/BookmarkButton';
 import EmptyBoard from '../components/EmptyBoard';
 import Pagination from '../components/Pagination';
@@ -182,6 +183,7 @@ export default function Home() {
               <button type="button" onClick={() => setSearchParams({})} className="shrink-0 text-sm font-medium text-sapphire hover:underline">Clear all</button>
             )}
           </div>
+          {data?.approximate && !isPlaceholderData && <ApproximateNotice query={filters.q} />}
 
           <div className={cn('overflow-hidden rounded-2xl border border-line bg-white transition-opacity', isPlaceholderData && 'opacity-60')}>
             {isPending ? (

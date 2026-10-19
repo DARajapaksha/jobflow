@@ -26,7 +26,8 @@ const sslSetting = { true: true, 'no-verify': { rejectUnauthorized: false } }[pr
 export const env = {
   nodeEnv,
   port: Number(process.env.PORT ?? 5000),
-  databaseUrl: process.env.DATABASE_URL,
+  // pg treats sslmode=require/prefer/verify-ca as verify-full today but will weaken that in v9; say verify-full explicitly
+  databaseUrl: process.env.DATABASE_URL.replace(/([?&]sslmode=)(require|prefer|verify-ca)(?=&|$)/, '$1verify-full'),
   databaseSsl: sslSetting,
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '7d',

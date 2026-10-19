@@ -32,7 +32,12 @@ Run the tests with `npm test` in `server/` (they use the database in `DATABASE_U
 | GET | `/api/employer/jobs` | employer | own listings with `applicantCount`; optional `?status=` |
 
 Search example: `/api/jobs?q=react developer&mode=remote,hybrid&type=internship&salaryMin=100000&sort=salary_desc&page=2&limit=10`.
-`type` and `mode` accept comma-separated lists. Response: `{ data: [...], pagination: { page, limit, total, totalPages } }`.
+`type` and `mode` accept comma-separated lists. Response: `{ data: [...], pagination: { page, limit, total, totalPages }, approximate }`.
+
+`q` is typo-tolerant. It matches exactly (with stemming), or when every word is within a small edit distance of a word in the
+title, company or category ("develper" finds "Developer"), or when the whole query run together is close to some words of
+the title or company ("fullstack" and "foll stack" find "Full Stack Developer" and "Fullstack Engineer"). Exact matches come
+first. `approximate` is `true` when there were results but none matched exactly, so a client can say "showing the closest jobs".
 
 ## Resume upload API
 
